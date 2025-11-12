@@ -23,38 +23,82 @@ class AuthRepository {
     required String firstName,
     required String lastName,
     required String phoneNumber,
+    String? invitationCode,
   }) async {
     try {
       final url = Uri.parse(
         '${ApiConstants.baseUrl}${ApiConstants.signupEndpoint}',
       );
 
+      // Construir el body del request
+      // Según el Swagger, el backend NO acepta null para invitationCode
+      // Debe ser un string vacío si no hay código
+      final requestBody = {
+        'email': email,
+        'password': password,
+        'firstName': firstName,
+        'lastName': lastName,
+        'phoneNumber': phoneNumber,
+        'requestedRole': 'CAR_OWNER',
+        'invitationCode': invitationCode ?? '', // String vacío en lugar de null
+      };
+
       final response = await _httpClient
           .post(
             url,
             headers: {'Content-Type': 'application/json'},
-            body: jsonEncode({
-              'email': email,
-              'password': password,
-              'firstName': firstName,
-              'lastName': lastName,
-              'phoneNumber': phoneNumber,
-              'requestedRole': 'CAR_OWNER',
-              'invitationCode': null,
-            }),
+            body: jsonEncode(requestBody),
           )
           .timeout(ApiConstants.connectionTimeout);
 
-      if (response.statusCode == 201) {
-        // Registro exitoso
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Registro exitoso (200 según Swagger, pero también aceptamos 201)
         return;
       } else if (response.statusCode == 400) {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Error en el registro');
+        try {
+          final errorData = jsonDecode(response.body);
+          throw Exception(
+            errorData['message'] ?? 'Datos de registro inválidos',
+          );
+        } catch (e) {
+          throw Exception('Datos de registro inválidos');
+        }
+      } else if (response.statusCode == 500) {
+        // Error del servidor - probablemente un problema con los datos
+        try {
+          final errorData = jsonDecode(response.body);
+          throw Exception(
+            errorData['message'] ??
+                'Error del servidor. Verifica que todos los campos estén completos.',
+          );
+        } catch (_) {
+          throw Exception(
+            'Error del servidor. Verifica que todos los campos estén completos.',
+          );
+        }
       } else {
-        throw Exception('Error del servidor: ${response.statusCode}');
+        // Otros errores del servidor
+        try {
+          final errorData = jsonDecode(response.body);
+          throw Exception(
+            errorData['message'] ??
+                'Error del servidor: ${response.statusCode}',
+          );
+        } catch (_) {
+          throw Exception('Error del servidor: ${response.statusCode}');
+        }
       }
     } catch (e) {
+      // Si ya es una Exception con mensaje claro, relanzarla
+      if (e is Exception && e.toString().contains('Exception:')) {
+        rethrow;
+      }
+      // Si es un error de conexión o timeout
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception('Error de conexión. Verifica tu conexión a internet.');
+      }
       throw Exception('Error al registrar usuario: $e');
     }
   }
@@ -79,6 +123,12 @@ class AuthRepository {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+
+        // Verificar que la respuesta tenga el formato esperado
+        if (data.isEmpty) {
+          throw Exception('Respuesta vacía del servidor');
+        }
+
         final authResponse = AuthResponse.fromJson(data);
 
         // Guardar token y datos del usuario
@@ -88,12 +138,37 @@ class AuthRepository {
       } else if (response.statusCode == 401) {
         throw Exception('Email o contraseña incorrectos');
       } else if (response.statusCode == 400) {
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? 'Error en el inicio de sesión');
+        try {
+          final errorData = jsonDecode(response.body);
+          throw Exception(
+            errorData['message'] ?? 'Error en el inicio de sesión',
+          );
+        } catch (_) {
+          throw Exception('Error en el inicio de sesión');
+        }
       } else {
-        throw Exception('Error del servidor: ${response.statusCode}');
+        // Intentar parsear el error del servidor
+        try {
+          final errorData = jsonDecode(response.body);
+          throw Exception(
+            errorData['message'] ??
+                'Error del servidor: ${response.statusCode}',
+          );
+        } catch (_) {
+          throw Exception('Error del servidor: ${response.statusCode}');
+        }
       }
     } catch (e) {
+      // Si ya es una Exception con mensaje claro, relanzarla
+      if (e is Exception && e.toString().contains('Exception:')) {
+        rethrow;
+      }
+      // Si es un error de conexión o timeout
+      if (e.toString().contains('TimeoutException') ||
+          e.toString().contains('SocketException') ||
+          e.toString().contains('Failed host lookup')) {
+        throw Exception('Error de conexión. Verifica tu conexión a internet.');
+      }
       throw Exception('Error al iniciar sesión: $e');
     }
   }

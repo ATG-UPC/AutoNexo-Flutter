@@ -175,33 +175,37 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildLogo() {
-    return Image.asset(
-      'assets/images/Logo_Login.png',
-      height: 100,
-      errorBuilder: (context, error, stackTrace) {
-        return const Column(
-          children: [
-            Icon(Icons.car_repair, size: 80, color: Color(0xFF5B7C99)),
-            SizedBox(height: 8),
-            Text(
-              'Autonexo',
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF5B7C99),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      child: Image.asset(
+        'assets/images/Logo_Autonexoo.png',
+        height: 120,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) {
+          return const Column(
+            children: [
+              Icon(Icons.car_repair, size: 80, color: Color(0xFF5B7C99)),
+              SizedBox(height: 8),
+              Text(
+                'AutoNexo',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF5B7C99),
+                ),
               ),
-            ),
-            Text(
-              'AUTOCARE SERVICE',
-              style: TextStyle(
-                fontSize: 14,
-                color: Color(0xFFEF476F),
-                letterSpacing: 2,
+              Text(
+                'QUICK SERVICE',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Color(0xFFEF476F),
+                  letterSpacing: 2,
+                ),
               ),
-            ),
-          ],
-        );
-      },
+            ],
+          );
+        },
+      ),
     );
   }
 }

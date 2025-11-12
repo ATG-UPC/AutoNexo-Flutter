@@ -59,6 +59,9 @@ class _LoginPageState extends State<LoginPage> {
                 backgroundColor: Colors.red,
               ),
             );
+          } else if (state.status == Status.success && state.isAuthenticated) {
+            // Login exitoso, navegar al home
+            AppRouter.toHome(context);
           }
         },
         child: SafeArea(
@@ -128,23 +131,38 @@ class _LoginPageState extends State<LoginPage> {
 
           const SizedBox(height: 32),
 
-          // Ilustración
+          // Logo de Login
           Center(
             child: Image.asset(
-              'assets/images/Logo_login.png',
-              height: 180,
+              'assets/images/Logo_Login.png',
+              height: 200,
+              fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  height: 180,
-                  width: 180,
+                  height: 200,
+                  width: 200,
                   decoration: BoxDecoration(
                     color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(
-                    Icons.directions_car,
-                    size: 80,
-                    color: Color(0xFF5B7C99),
+                  child: const Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.directions_car,
+                        size: 80,
+                        color: Color(0xFF5B7C99),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'AutoNexo',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF5B7C99),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },

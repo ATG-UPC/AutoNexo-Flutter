@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'core/ui/theme/app_theme.dart';
 import 'core/navigation/app_router.dart';
 import 'core/di/injection_container.dart';
-import 'features/auth/presentation/bloc/auth_event.dart';
 
 void main() {
   // Inicializar dependencias
@@ -22,7 +21,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider.value(value: di.authBloc..add(const AuthCheckRequested())),
+        BlocProvider.value(value: di.authBloc),
         BlocProvider.value(value: di.forgotPasswordCubit),
         BlocProvider.value(value: di.homeCubit),
         BlocProvider.value(value: di.profileCubit),
@@ -31,7 +30,7 @@ class MainApp extends StatelessWidget {
         title: 'AutoNexo Owner',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme(),
-        initialRoute: AppRouter.initial,
+        initialRoute: AppRouter.login,
         onGenerateRoute: AppRouter.onGenerateRoute,
       ),
     );
