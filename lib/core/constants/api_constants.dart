@@ -1,8 +1,5 @@
 /// Constantes de configuración de la API
 class ApiConstants {
-  // Base URL del backend
-  // TODO: Actualizar con tu URL de Azure
-
   // Configuración de ambiente
   static const bool _isProduction =
       true; // Cambia a false para desarrollo local
@@ -10,7 +7,7 @@ class ApiConstants {
   // URLs por ambiente
   static const String _devBaseUrl = 'http://localhost:8080/api/v1';
   static const String _prodBaseUrl =
-      'https://TU-APP.azurewebsites.net/api/v1'; // REEMPLAZAR con tu URL de Azure
+      'https://autonexo-backend-akcsb5avacemdwh7.canadacentral-01.azurewebsites.net/api/v1';
 
   // URL activa según el ambiente
   static String get baseUrl => _isProduction ? _prodBaseUrl : _devBaseUrl;

@@ -49,11 +49,13 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_formKey.currentState!.validate()) {
       // Separar nombre y apellido
       final fullName = _fullNameController.text.trim();
-      final nameParts = fullName.split(' ');
+      final nameParts = fullName.split(' ').where((part) => part.isNotEmpty).toList();
+      
+      // Asegurar que siempre haya firstName y lastName
       final firstName = nameParts.first;
       final lastName = nameParts.length > 1
           ? nameParts.sublist(1).join(' ')
-          : '';
+          : firstName; // Si solo hay un nombre, usarlo también como apellido
 
       context.read<AuthBloc>().add(
         AuthRegisterRequested(

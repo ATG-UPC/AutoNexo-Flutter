@@ -31,9 +31,18 @@ class _CustomDrawerState extends State<CustomDrawer> {
   }
 
   void _logout() {
+    // Cerrar drawer primero
+    Navigator.of(context).pop();
+
+    // Ejecutar logout
     context.read<AuthBloc>().add(const AuthLogoutRequested());
-    Navigator.of(context).pop(); // Cerrar drawer
-    AppRouter.toLogin(context);
+
+    // Navegar al login
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (context.mounted) {
+        AppRouter.toLogin(context);
+      }
+    });
   }
 
   @override
@@ -120,15 +129,16 @@ class _CustomDrawerState extends State<CustomDrawer> {
             ],
           ),
           Image.asset(
-            'assets/images/Logo_Login.png',
+            'assets/images/Logo_Autonexoo.png',
             height: 80,
+            fit: BoxFit.contain,
             errorBuilder: (context, error, stackTrace) {
               return const Column(
                 children: [
-                  Icon(Icons.car_repair, size: 60, color: Colors.red),
+                  Icon(Icons.car_repair, size: 60, color: Colors.white),
                   SizedBox(height: 8),
                   Text(
-                    'Autonexo',
+                    'AutoNexo',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
