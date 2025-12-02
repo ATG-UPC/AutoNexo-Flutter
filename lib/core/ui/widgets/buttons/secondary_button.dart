@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:autonexoowner/core/ui/theme/app_theme.dart';
 
-/// Botón primario reutilizable de la aplicación.
+/// Botón secundario con estilo outlined.
 /// 
-/// Utiliza el color primario del tema (Primary Blue #202D36).
+/// Utiliza el color primario del tema para el borde y texto.
 /// 
 /// Ejemplo de uso:
 /// ```dart
-/// PrimaryButton(
-///   text: 'Iniciar Sesión',
-///   onPressed: () => _handleLogin(),
-///   isLoading: _isLoading,
+/// SecondaryButton(
+///   text: 'Cancelar',
+///   onPressed: () => Navigator.pop(context),
 /// )
 /// ```
-class PrimaryButton extends StatelessWidget {
+class SecondaryButton extends StatelessWidget {
   /// Texto del botón
   final String text;
   
@@ -26,11 +25,8 @@ class PrimaryButton extends StatelessWidget {
   /// Indica si el botón está habilitado
   final bool isEnabled;
   
-  /// Color de fondo personalizado (usa primaryBlue por defecto)
-  final Color? backgroundColor;
-  
-  /// Color del texto personalizado (usa blanco por defecto)
-  final Color? textColor;
+  /// Color del borde y texto personalizado
+  final Color? color;
   
   /// Ancho del botón (usa double.infinity por defecto)
   final double? width;
@@ -41,14 +37,13 @@ class PrimaryButton extends StatelessWidget {
   /// Icono opcional a mostrar antes del texto
   final Widget? icon;
 
-  const PrimaryButton({
+  const SecondaryButton({
     super.key,
     required this.text,
     this.onPressed,
     this.isLoading = false,
     this.isEnabled = true,
-    this.backgroundColor,
-    this.textColor,
+    this.color,
     this.width,
     this.height = 56,
     this.icon,
@@ -56,24 +51,24 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = backgroundColor ?? AppTheme.primaryBlue;
-    final fgColor = textColor ?? AppTheme.primaryWhite;
+    final buttonColor = color ?? AppTheme.primaryBlue;
     final isDisabled = !isEnabled || isLoading || onPressed == null;
     
     return SizedBox(
       width: width ?? double.infinity,
       height: height,
-      child: ElevatedButton(
+      child: OutlinedButton(
         onPressed: isDisabled ? null : onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: bgColor,
-          foregroundColor: fgColor,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: buttonColor,
+          side: BorderSide(
+            color: isDisabled ? buttonColor.withOpacity(0.4) : buttonColor,
+            width: 1.5,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 0,
-          disabledBackgroundColor: bgColor.withOpacity(0.6),
-          disabledForegroundColor: fgColor.withOpacity(0.8),
+          disabledForegroundColor: buttonColor.withOpacity(0.4),
         ),
         child: isLoading
             ? SizedBox(
@@ -81,7 +76,7 @@ class PrimaryButton extends StatelessWidget {
                 width: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(fgColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(buttonColor),
                 ),
               )
             : Row(
@@ -97,7 +92,7 @@ class PrimaryButton extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: fgColor,
+                      color: isDisabled ? buttonColor.withOpacity(0.4) : buttonColor,
                     ),
                   ),
                 ],
@@ -106,3 +101,4 @@ class PrimaryButton extends StatelessWidget {
     );
   }
 }
+

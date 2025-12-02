@@ -1,27 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:autonexoowner/core/ui/theme/app_theme.dart';
 
-/// Campo de texto personalizado reutilizable.
+/// Campo de contraseña con toggle de visibilidad.
 /// 
-/// Utiliza los colores del tema definido en AppTheme.
+/// Incluye un icono de ojo para mostrar/ocultar la contraseña.
 /// 
 /// Ejemplo de uso:
 /// ```dart
-/// CustomTextField(
-///   label: 'Email',
-///   hint: 'owner@gmail.com',
-///   controller: _emailController,
-///   validator: Validators.email,
-///   keyboardType: TextInputType.emailAddress,
+/// PasswordField(
+///   label: 'Contraseña',
+///   controller: _passwordController,
+///   validator: Validators.password,
 /// )
 /// ```
-class CustomTextField extends StatelessWidget {
+class PasswordField extends StatefulWidget {
   /// Etiqueta del campo
   final String label;
-  
-  /// Texto de placeholder
-  final String? hint;
   
   /// Controlador del campo
   final TextEditingController? controller;
@@ -29,20 +23,8 @@ class CustomTextField extends StatelessWidget {
   /// Función de validación
   final String? Function(String?)? validator;
   
-  /// Tipo de teclado
-  final TextInputType? keyboardType;
-  
-  /// Ocultar texto (para contraseñas)
-  final bool obscureText;
-  
-  /// Icono al inicio del campo
-  final Widget? prefixIcon;
-  
-  /// Widget al final del campo
-  final Widget? suffixIcon;
-  
-  /// Número máximo de líneas
-  final int? maxLines;
+  /// Texto de placeholder
+  final String? hint;
   
   /// Si el campo está habilitado
   final bool enabled;
@@ -53,41 +35,37 @@ class CustomTextField extends StatelessWidget {
   /// Callback cuando se envía el formulario
   final void Function(String)? onFieldSubmitted;
   
-  /// Longitud máxima de caracteres
-  final int? maxLength;
-  
   /// Acción del teclado
   final TextInputAction? textInputAction;
-  
-  /// Lista de formateadores de entrada
-  final List<TextInputFormatter>? inputFormatters;
-  
-  /// Autofocus al cargar
-  final bool autofocus;
   
   /// Focus node para control de foco
   final FocusNode? focusNode;
 
-  const CustomTextField({
+  const PasswordField({
     super.key,
     required this.label,
-    this.hint,
     this.controller,
     this.validator,
-    this.keyboardType,
-    this.obscureText = false,
-    this.prefixIcon,
-    this.suffixIcon,
-    this.maxLines = 1,
+    this.hint,
     this.enabled = true,
     this.onChanged,
     this.onFieldSubmitted,
-    this.maxLength,
     this.textInputAction,
-    this.inputFormatters,
-    this.autofocus = false,
     this.focusNode,
   });
+
+  @override
+  State<PasswordField> createState() => _PasswordFieldState();
+}
+
+class _PasswordFieldState extends State<PasswordField> {
+  bool _obscureText = true;
+
+  void _toggleVisibility() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,7 +73,7 @@ class CustomTextField extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          widget.label,
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -104,34 +82,36 @@ class CustomTextField extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          controller: controller,
-          validator: validator,
-          keyboardType: keyboardType,
-          obscureText: obscureText,
-          maxLines: maxLines,
-          enabled: enabled,
-          onChanged: onChanged,
-          onFieldSubmitted: onFieldSubmitted,
-          maxLength: maxLength,
-          textInputAction: textInputAction,
-          inputFormatters: inputFormatters,
-          autofocus: autofocus,
-          focusNode: focusNode,
+          controller: widget.controller,
+          validator: widget.validator,
+          obscureText: _obscureText,
+          enabled: widget.enabled,
+          onChanged: widget.onChanged,
+          onFieldSubmitted: widget.onFieldSubmitted,
+          textInputAction: widget.textInputAction,
+          focusNode: widget.focusNode,
+          keyboardType: TextInputType.visiblePassword,
           style: const TextStyle(
-            fontSize: 14, 
+            fontSize: 14,
             color: AppTheme.textBlack,
           ),
           decoration: InputDecoration(
-            hintText: hint,
+            hintText: widget.hint ?? '••••••••',
             hintStyle: const TextStyle(
-              color: AppTheme.gray1, 
+              color: AppTheme.gray1,
               fontSize: 14,
             ),
-            prefixIcon: prefixIcon,
-            suffixIcon: suffixIcon,
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureText ? Icons.visibility_off : Icons.visibility,
+                color: AppTheme.gray2,
+                size: 22,
+              ),
+              onPressed: _toggleVisibility,
+              splashRadius: 20,
+            ),
             filled: true,
             fillColor: AppTheme.white,
-            counterText: '', // Oculta el contador de caracteres
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppTheme.gray1),
@@ -143,7 +123,7 @@ class CustomTextField extends StatelessWidget {
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: AppTheme.secondarySteelBlue, 
+                color: AppTheme.secondarySteelBlue,
                 width: 2,
               ),
             ),
@@ -154,7 +134,7 @@ class CustomTextField extends StatelessWidget {
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(
-                color: AppTheme.errorColor, 
+                color: AppTheme.errorColor,
                 width: 2,
               ),
             ),
@@ -172,3 +152,4 @@ class CustomTextField extends StatelessWidget {
     );
   }
 }
+

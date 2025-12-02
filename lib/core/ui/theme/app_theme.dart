@@ -1,24 +1,44 @@
 import 'package:flutter/material.dart';
 
 /// Tema de la aplicación AutoNexo Owner
+/// Colores extraídos del diseño Figma: https://www.figma.com/design/eiNkdEp9PnXWGA5jPEThG1/APP-MOVIL-ATG
 class AppTheme {
-  // Colores principales
-  static const Color primaryBlue = Color(0xFF5B7C99);
-  static const Color darkBlue = Color(0xFF4A6278);
-  static const Color lightBlue = Color(0xFF7D9BB8);
+  // === Primary Colors (Figma) ===
+  static const Color primaryBlue = Color(0xFF202D36); // Primary Blue
+  static const Color primaryWhite = Color(0xFFFFFFFF); // Primary White
 
-  static const Color secondaryOrange = Color(0xFFFF6B35);
-  static const Color accentRed = Color(0xFFE63946);
+  // === Secondary Colors (Figma) ===
+  static const Color secondaryCrimson = Color(0xFF800C1F); // Secondary Crimson
+  static const Color secondaryDarkRed = Color(0xFF3C0007); // Secondary Dark Red
+  static const Color secondarySteelBlue = Color(0xFF5C7896); // Secondary Steel Blue
+  static const Color secondaryLightBlueGray = Color(0xFF7598B9); // Secondary Light Blue-Gray
 
-  static const Color backgroundColor = Color(0xFFF8F9FA);
-  static const Color cardColor = Colors.white;
+  // === Wireframe Colors (Figma) ===
+  static const Color gray1 = Color(0xFFD9D9D9); // Gray 1
+  static const Color gray2 = Color(0xFF8E8E8E); // Gray 2
+  static const Color black = Color(0xFF282828); // Black
+  static const Color white = Color(0xFFFFFFFF); // White
 
-  static const Color textPrimary = Color(0xFF2B2D42);
-  static const Color textSecondary = Color(0xFF8D99AE);
-  static const Color textHint = Color(0xFFADB5BD);
+  // === Text Colors (Figma) ===
+  static const Color textBlack = Color(0xFF000000); // Text Black
+  static const Color textWhite = Color(0xFFFFFFFF); // Text White
 
-  static const Color errorColor = Color(0xFFE63946);
-  static const Color successColor = Color(0xFF06D6A0);
+  // === Semantic Colors (Derivados del diseño) ===
+  static const Color backgroundColor = Color(0xFFF8F9FA); // Fondo claro
+  static const Color cardColor = white; // Color de tarjetas
+  static const Color textPrimary = black; // Texto principal
+  static const Color textSecondary = gray2; // Texto secundario
+  static const Color textHint = gray1; // Texto de hint
+
+  // Colores semánticos usando la paleta del diseño
+  static const Color errorColor = secondaryCrimson; // Error (Crimson)
+  static const Color successColor = Color(0xFF06D6A0); // Success (mantener verde)
+  static const Color warningColor = Color(0xFFFFB800); // Warning (amarillo)
+
+  // Aliases para compatibilidad con código existente
+  static const Color darkBlue = secondarySteelBlue;
+  static const Color lightBlue = secondaryLightBlueGray;
+  static const Color accentRed = secondaryCrimson;
 
   /// Tema claro
   static ThemeData lightTheme() {
@@ -28,14 +48,16 @@ class AppTheme {
 
       // Colores
       colorScheme: const ColorScheme.light(
-        primary: primaryBlue,
-        secondary: secondaryOrange,
-        surface: cardColor,
-        error: errorColor,
-        onPrimary: Colors.white,
-        onSecondary: Colors.white,
-        onSurface: textPrimary,
-        onError: Colors.white,
+        primary: primaryBlue, // #202D36
+        secondary: secondarySteelBlue, // #5C7896
+        tertiary: secondaryLightBlueGray, // #7598B9
+        surface: cardColor, // White
+        error: errorColor, // Secondary Crimson #800C1F
+        onPrimary: textWhite, // White
+        onSecondary: textWhite, // White
+        onTertiary: textWhite, // White
+        onSurface: textPrimary, // Black #000000
+        onError: textWhite, // White
       ),
 
       scaffoldBackgroundColor: backgroundColor,
@@ -90,7 +112,7 @@ class AppTheme {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+          borderSide: const BorderSide(color: gray1), // #D9D9D9
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -111,8 +133,8 @@ class AppTheme {
       // Botones
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryBlue,
-          foregroundColor: Colors.white,
+          backgroundColor: primaryBlue, // #202D36
+          foregroundColor: textWhite, // White
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -124,8 +146,21 @@ class AppTheme {
 
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: primaryBlue,
+          foregroundColor: primaryBlue, // #202D36
           textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ),
+
+      // Outlined Button Theme
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryBlue, // #202D36
+          side: const BorderSide(color: primaryBlue, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );
