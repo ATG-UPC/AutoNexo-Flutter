@@ -38,9 +38,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
       if (success && mounted) {
         await SuccessDialog.show(
-          context,
+          context: context,
           message: 'Your password has been changed successfully.',
-          onOk: () {
+          onPressed: () {
             Navigator.pop(context); // Volver a edit profile
           },
         );
@@ -61,7 +61,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           listener: (context, state) {
             if (state.status == Status.failure) {
               ErrorDialog.show(
-                context,
+                context: context,
                 message:
                     state.errorMessage ??
                     'There was an error during the process.',

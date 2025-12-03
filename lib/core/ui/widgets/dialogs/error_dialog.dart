@@ -20,12 +20,16 @@ class ErrorDialog extends StatelessWidget {
   
   /// Texto del botón
   final String buttonText;
+  
+  /// Callback al presionar el botón
+  final VoidCallback? onPressed;
 
   const ErrorDialog({
     super.key,
     this.title = 'Error',
     required this.message,
     this.buttonText = 'Aceptar',
+    this.onPressed,
   });
 
   /// Muestra el diálogo de error
@@ -34,6 +38,7 @@ class ErrorDialog extends StatelessWidget {
     String title = 'Error',
     required String message,
     String buttonText = 'Aceptar',
+    VoidCallback? onPressed,
   }) {
     return showDialog<void>(
       context: context,
@@ -42,6 +47,7 @@ class ErrorDialog extends StatelessWidget {
         title: title,
         message: message,
         buttonText: buttonText,
+        onPressed: onPressed,
       ),
     );
   }
@@ -93,7 +99,10 @@ class ErrorDialog extends StatelessWidget {
               text: buttonText,
               height: 48,
               backgroundColor: AppTheme.errorColor,
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onPressed?.call();
+              },
             ),
           ],
         ),

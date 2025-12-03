@@ -20,12 +20,16 @@ class SuccessDialog extends StatelessWidget {
   
   /// Texto del botón
   final String buttonText;
+  
+  /// Callback al presionar el botón
+  final VoidCallback? onPressed;
 
   const SuccessDialog({
     super.key,
     this.title = 'Éxito',
     required this.message,
     this.buttonText = 'Aceptar',
+    this.onPressed,
   });
 
   /// Muestra el diálogo de éxito
@@ -34,6 +38,7 @@ class SuccessDialog extends StatelessWidget {
     String title = 'Éxito',
     required String message,
     String buttonText = 'Aceptar',
+    VoidCallback? onPressed,
   }) {
     return showDialog<void>(
       context: context,
@@ -42,6 +47,7 @@ class SuccessDialog extends StatelessWidget {
         title: title,
         message: message,
         buttonText: buttonText,
+        onPressed: onPressed,
       ),
     );
   }
@@ -93,7 +99,10 @@ class SuccessDialog extends StatelessWidget {
               text: buttonText,
               height: 48,
               backgroundColor: AppTheme.successColor,
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onPressed?.call();
+              },
             ),
           ],
         ),

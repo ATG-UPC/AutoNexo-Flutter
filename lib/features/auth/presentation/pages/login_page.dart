@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../../core/enums/status.dart';
-import '../../../../core/ui/widgets/widgets.dart';
-import '../../../../core/navigation/app_router.dart';
+import 'package:autonexoowner/core/enums/status.dart';
+import 'package:autonexoowner/core/ui/widgets/widgets.dart';
+import 'package:autonexoowner/core/ui/theme/app_theme.dart';
+import 'package:autonexoowner/core/navigation/app_router.dart';
+import 'package:autonexoowner/core/utils/validators.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../bloc/auth_state.dart';
 
+/// Página de inicio de sesión.
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
 
@@ -18,7 +21,6 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -49,15 +51,13 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppTheme.backgroundColor,
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state.status == Status.failure) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage ?? 'Error al iniciar sesión'),
-                backgroundColor: Colors.red,
-              ),
+            ErrorDialog.show(
+              context: context,
+              message: state.errorMessage ?? 'Error al iniciar sesión',
             );
           } else if (state.status == Status.success && state.isAuthenticated) {
             // Login exitoso, navegar al home
@@ -90,24 +90,24 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: Color(0xFF5B7C99),
+        color: AppTheme.secondarySteelBlue,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.elliptical(200, 30),
           bottomRight: Radius.elliptical(200, 30),
         ),
       ),
-      child: Column(
+      child: const Column(
         children: [
-          const SizedBox(height: 16),
-          const Text(
+          SizedBox(height: 16),
+          Text(
             'Owner',
             style: TextStyle(
-              color: Colors.white,
+              color: AppTheme.primaryWhite,
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
         ],
       ),
     );
@@ -124,7 +124,7 @@ class _LoginPageState extends State<LoginPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF5B7C99),
+              color: AppTheme.secondarySteelBlue,
             ),
             textAlign: TextAlign.center,
           ),
@@ -142,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
                   height: 200,
                   width: 200,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: AppTheme.gray1.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Column(
@@ -151,7 +151,7 @@ class _LoginPageState extends State<LoginPage> {
                       Icon(
                         Icons.directions_car,
                         size: 80,
-                        color: Color(0xFF5B7C99),
+                        color: AppTheme.secondarySteelBlue,
                       ),
                       SizedBox(height: 8),
                       Text(
@@ -159,7 +159,7 @@ class _LoginPageState extends State<LoginPage> {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF5B7C99),
+                          color: AppTheme.secondarySteelBlue,
                         ),
                       ),
                     ],
@@ -177,45 +177,19 @@ class _LoginPageState extends State<LoginPage> {
             hint: 'owner@gmail.com',
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor ingresa tu email';
-              }
-              if (!value.contains('@')) {
-                return 'Por favor ingresa un email válido';
-              }
-              return null;
-            },
+            textInputAction: TextInputAction.next,
+            validator: Validators.email,
           ),
 
           const SizedBox(height: 16),
 
-          // Campo Password
-          CustomTextField(
+          // Campo Password usando PasswordField
+          PasswordField(
             label: 'Password',
-            hint: '••••••••••••',
             controller: _passwordController,
-            obscureText: _obscurePassword,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Por favor ingresa tu contraseña';
-              }
-              if (value.length < 6) {
-                return 'La contraseña debe tener al menos 6 caracteres';
-              }
-              return null;
-            },
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                color: const Color(0xFF8D99AE),
-              ),
-              onPressed: () {
-                setState(() {
-                  _obscurePassword = !_obscurePassword;
-                });
-              },
-            ),
+            textInputAction: TextInputAction.done,
+            onFieldSubmitted: (_) => _onLogin(),
+            validator: Validators.password,
           ),
 
           const SizedBox(height: 8),
@@ -227,7 +201,10 @@ class _LoginPageState extends State<LoginPage> {
               onPressed: _navigateToForgotPassword,
               child: const Text(
                 'Forgot Password?',
-                style: TextStyle(color: Color(0xFF8D99AE), fontSize: 14),
+                style: TextStyle(
+                  color: AppTheme.textSecondary,
+                  fontSize: 14,
+                ),
               ),
             ),
           ),
@@ -235,14 +212,9 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 24),
 
           // Botón Register
-          BlocBuilder<AuthBloc, AuthState>(
-            builder: (context, state) {
-              return PrimaryButton(
-                text: 'Register',
-                onPressed: _navigateToRegister,
-                backgroundColor: const Color(0xFF5B7C99),
-              );
-            },
+          SecondaryButton(
+            text: 'Register',
+            onPressed: _navigateToRegister,
           ),
 
           const SizedBox(height: 16),
@@ -250,15 +222,18 @@ class _LoginPageState extends State<LoginPage> {
           // Separador "Or"
           Row(
             children: [
-              Expanded(child: Divider(color: Colors.grey[300])),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
+              Expanded(child: Divider(color: AppTheme.gray1)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Or',
-                  style: TextStyle(color: Color(0xFF8D99AE), fontSize: 14),
+                  style: TextStyle(
+                    color: AppTheme.textSecondary,
+                    fontSize: 14,
+                  ),
                 ),
               ),
-              Expanded(child: Divider(color: Colors.grey[300])),
+              Expanded(child: Divider(color: AppTheme.gray1)),
             ],
           ),
 
@@ -271,7 +246,6 @@ class _LoginPageState extends State<LoginPage> {
                 text: 'Login',
                 onPressed: _onLogin,
                 isLoading: state.status == Status.loading,
-                backgroundColor: const Color(0xFF2B2D42),
               );
             },
           ),

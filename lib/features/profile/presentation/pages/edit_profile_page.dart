@@ -62,9 +62,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
         // Mostrar diálogo de éxito
         await SuccessDialog.show(
-          context,
+          context: context,
           message: 'The profile was edited successfully.',
-          onOk: () {
+          onPressed: () {
             Navigator.pop(context); // Volver a profile
           },
         );
@@ -85,7 +85,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           listener: (context, state) {
             if (state.status == Status.failure) {
               ErrorDialog.show(
-                context,
+                context: context,
                 message:
                     state.errorMessage ??
                     'There was an error during the process.',
