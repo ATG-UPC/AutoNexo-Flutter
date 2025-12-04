@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/navigation/app_router.dart';
+import '../../../../core/services/preferences_service.dart';
+import '../../../../main.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_event.dart';
 
@@ -13,21 +15,46 @@ class CustomDrawer extends StatefulWidget {
 }
 
 class _CustomDrawerState extends State<CustomDrawer> {
+  final PreferencesService _prefs = PreferencesService();
   String _selectedLanguage = 'English';
   bool _isDarkMode = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final isDark = await _prefs.isDarkMode();
+    final language = await _prefs.getLanguage();
+    if (mounted) {
+      setState(() {
+        _isDarkMode = isDark;
+        _selectedLanguage = language == 'es' ? 'Español' : 'English';
+      });
+    }
+  }
 
   void _toggleLanguage(String language) {
     setState(() {
       _selectedLanguage = language;
     });
-    // TODO: Implementar cambio de idioma real
+    final languageCode = language == 'Español' ? 'es' : 'en';
+    _prefs.setLanguage(languageCode);
   }
 
   void _toggleTheme(bool isDark) {
     setState(() {
       _isDarkMode = isDark;
     });
-    // TODO: Implementar cambio de tema real
+    _prefs.setDarkMode(isDark);
+    
+    // Actualizar el tema en la app
+    final themeProvider = ThemeModeProvider.of(context);
+    if (themeProvider != null) {
+      themeProvider.updateThemeMode(isDark ? ThemeMode.dark : ThemeMode.light);
+    }
   }
 
   void _logout() async {
@@ -92,7 +119,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     title: 'Plan pro',
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Navegar a plan pro
+                      _showPlanDialog(context, 'Plan Pro', 'Funcionalidad próximamente disponible');
                     },
                   ),
                   _buildMenuItem(
@@ -101,7 +128,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     iconColor: Colors.blue,
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Navegar a plan premium
+                      _showPlanDialog(context, 'Plan Premium', 'Funcionalidad próximamente disponible');
                     },
                   ),
                   _buildMenuItem(
@@ -109,7 +136,7 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     title: 'Support and Assistance',
                     onTap: () {
                       Navigator.pop(context);
-                      // TODO: Navegar a support
+                      _showSupportDialog(context);
                     },
                   ),
                   _buildMenuItem(
@@ -296,6 +323,52 @@ class _CustomDrawerState extends State<CustomDrawer> {
                   ),
                 ),
         ),
+      ),
+    );
+  }
+
+  void _showPlanDialog(BuildContext context, String planName, String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(planName),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSupportDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Soporte y Asistencia'),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('¿Necesitas ayuda?'),
+            SizedBox(height: 12),
+            Text('Puedes contactarnos a través de:'),
+            SizedBox(height: 8),
+            Text('• Email: soporte@autonexo.com'),
+            SizedBox(height: 4),
+            Text('• Teléfono: +51 999 888 777'),
+            SizedBox(height: 4),
+            Text('• Horario: Lunes a Viernes 9:00 - 18:00'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
+          ),
+        ],
       ),
     );
   }

@@ -1,6 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/enums/status.dart';
+import '../../../vehicles/data/models/models.dart';
+import '../../../vehicles/data/repositories/vehicle_repository.dart';
+import '../../../workshops/data/models/models.dart';
+import '../../../workshops/data/repositories/workshops_repository.dart';
 import '../../data/models/models.dart';
 import '../../data/repositories/bookings_repository.dart';
 import 'bookings_state.dart';
@@ -8,10 +12,17 @@ import 'bookings_state.dart';
 /// Cubit para gestionar el estado de las reservas de servicio
 class BookingsCubit extends Cubit<BookingsState> {
   final BookingsRepository _repository;
+  final WorkshopsRepository _workshopsRepository;
+  final VehicleRepository _vehicleRepository;
   bool _isLoading = false;
 
-  BookingsCubit({BookingsRepository? repository})
-      : _repository = repository ?? BookingsRepository(),
+  BookingsCubit({
+    BookingsRepository? repository,
+    WorkshopsRepository? workshopsRepository,
+    VehicleRepository? vehicleRepository,
+  })  : _repository = repository ?? BookingsRepository(),
+        _workshopsRepository = workshopsRepository ?? WorkshopsRepository(),
+        _vehicleRepository = vehicleRepository ?? VehicleRepository(),
         super(const BookingsState());
 
   /// Cargar reservas inicial
@@ -43,6 +54,9 @@ class BookingsCubit extends Cubit<BookingsState> {
         totalElements: response.totalElements,
         hasMore: !response.isLast,
       ));
+
+      // Cargar información de talleres y vehículos en background
+      loadBookingsInfo(response.content);
     } catch (e) {
       if (isClosed) return;
       emit(state.copyWith(
@@ -205,6 +219,73 @@ class BookingsCubit extends Cubit<BookingsState> {
   /// Refrescar bookings
   Future<void> refreshBookings() async {
     await loadBookings(refresh: true);
+  }
+
+  /// Cargar información de un taller
+  Future<void> loadWorkshopInfo(int workshopId) async {
+    // Si ya está en cache, no hacer nada
+    if (state.workshopsCache.containsKey(workshopId)) {
+      return;
+    }
+
+    try {
+      final workshop = await _workshopsRepository.getWorkshopProfile(workshopId);
+      
+      if (isClosed) return;
+
+      final updatedCache = Map<int, WorkshopProfileModel>.from(state.workshopsCache);
+      updatedCache[workshopId] = workshop;
+
+      emit(state.copyWith(workshopsCache: updatedCache));
+    } catch (e) {
+      // Silenciar errores, solo no se cacheará la info
+      // El UI mostrará el ID como fallback
+    }
+  }
+
+  /// Cargar información de un vehículo
+  Future<void> loadVehicleInfo(int vehicleId) async {
+    // Si ya está en cache, no hacer nada
+    if (state.vehiclesCache.containsKey(vehicleId)) {
+      return;
+    }
+
+    try {
+      final vehicle = await _vehicleRepository.getVehicleById(vehicleId);
+      
+      if (isClosed) return;
+
+      final updatedCache = Map<int, VehicleModel>.from(state.vehiclesCache);
+      updatedCache[vehicleId] = vehicle;
+
+      emit(state.copyWith(vehiclesCache: updatedCache));
+    } catch (e) {
+      // Silenciar errores, solo no se cacheará la info
+      // El UI mostrará el ID como fallback
+    }
+  }
+
+  /// Cargar información de talleres y vehículos para una lista de bookings
+  Future<void> loadBookingsInfo(List<ServiceBookingModel> bookings) async {
+    final workshopIds = bookings.map((b) => b.workshopId).toSet();
+    final vehicleIds = bookings.map((b) => b.vehicleId).toSet();
+
+    // Filtrar IDs que no están en cache
+    final missingWorkshopIds = workshopIds.where((id) => !state.workshopsCache.containsKey(id)).toList();
+    final missingVehicleIds = vehicleIds.where((id) => !state.vehiclesCache.containsKey(id)).toList();
+
+    // Cargar en paralelo
+    final futures = <Future>[];
+    
+    for (final workshopId in missingWorkshopIds) {
+      futures.add(loadWorkshopInfo(workshopId));
+    }
+    
+    for (final vehicleId in missingVehicleIds) {
+      futures.add(loadVehicleInfo(vehicleId));
+    }
+
+    await Future.wait(futures, eagerError: false);
   }
 }
 

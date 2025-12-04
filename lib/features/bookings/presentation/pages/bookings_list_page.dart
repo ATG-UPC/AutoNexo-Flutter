@@ -104,11 +104,19 @@ class _BookingsListPageState extends State<BookingsListPage> {
                       }
 
                       final booking = filteredBookings[index];
+                      final workshopInfo = state.getWorkshopInfo(booking.workshopId);
+                      final vehicleInfo = state.getVehicleInfo(booking.vehicleId);
+                      
+                      final workshopName = workshopInfo?.name ?? 'Taller #${booking.workshopId}';
+                      final vehicleName = vehicleInfo != null 
+                          ? '${vehicleInfo.brandName ?? ''} ${vehicleInfo.model}'.trim()
+                          : 'Vehículo #${booking.vehicleId}';
+                      
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: BookingCard(
-                          workshopName: 'Taller #${booking.workshopId}', // TODO: Obtener nombre real
-                          vehicleName: 'Vehículo #${booking.vehicleId}', // TODO: Obtener info real
+                          workshopName: workshopName,
+                          vehicleName: vehicleName,
                           scheduledDate: booking.scheduledDate,
                           status: booking.status.toString().split('.').last,
                           services: booking.servicesToPerform,

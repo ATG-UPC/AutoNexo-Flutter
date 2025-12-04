@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/enums/status.dart';
+import '../../../../core/navigation/app_router.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 import '../../../vehicles/presentation/cubit/cubit.dart';
@@ -269,7 +270,7 @@ class _HomeContentState extends State<HomeContent> {
                 icon: const Icon(Icons.notifications_outlined),
                 color: Colors.white,
                 onPressed: () {
-                  // TODO: Navegar a notificaciones
+                  AppRouter.toNotifications(context);
                 },
               ),
 

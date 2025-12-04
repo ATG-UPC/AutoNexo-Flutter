@@ -1,12 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/navigation/app_router.dart';
+import '../../../../core/services/preferences_service.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
 
 /// Página de perfil del usuario
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  final PreferencesService _prefs = PreferencesService();
+  bool _notificationsEnabled = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadNotificationPreference();
+  }
+
+  Future<void> _loadNotificationPreference() async {
+    final enabled = await _prefs.areNotificationsEnabled();
+    if (mounted) {
+      setState(() {
+        _notificationsEnabled = enabled;
+      });
+    }
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    setState(() {
+      _notificationsEnabled = value;
+    });
+    await _prefs.setNotificationsEnabled(value);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -274,10 +305,8 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
         Switch(
-          value: value,
-          onChanged: (val) {
-            // TODO: Implementar cambio de notificaciones
-          },
+          value: _notificationsEnabled,
+          onChanged: _toggleNotifications,
           activeColor: const Color(0xFF2B3E50),
         ),
       ],

@@ -4,12 +4,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/enums/status.dart';
 import '../../../../core/ui/widgets/widgets.dart';
 import '../../../reviews/reviews.dart';
+import '../../../workshops/workshops.dart';
 import '../../data/models/models.dart';
 import '../cubit/cubit.dart';
 import '../widgets/widgets.dart';
 
 /// Página de detalle de una reserva de servicio
-class BookingDetailPage extends StatelessWidget {
+class BookingDetailPage extends StatefulWidget {
   final ServiceBookingModel booking;
 
   const BookingDetailPage({
@@ -18,10 +19,25 @@ class BookingDetailPage extends StatelessWidget {
   });
 
   @override
+  State<BookingDetailPage> createState() => _BookingDetailPageState();
+}
+
+class _BookingDetailPageState extends State<BookingDetailPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargar información del taller y vehículo al iniciar
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BookingsCubit>().loadWorkshopInfo(widget.booking.workshopId);
+      context.read<BookingsCubit>().loadVehicleInfo(widget.booking.vehicleId);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Reserva #${booking.id}'),
+        title: Text('Reserva #${widget.booking.id}'),
         elevation: 0,
       ),
       body: BlocConsumer<BookingsCubit, BookingsState>(
@@ -52,8 +68,10 @@ class BookingDetailPage extends StatelessWidget {
         },
         builder: (context, state) {
           // Usar el booking actualizado del estado si existe
-          final currentBooking = state.selectedBooking ?? booking;
+          final currentBooking = state.selectedBooking ?? widget.booking;
           final isProcessing = state.status == Status.loading;
+          final workshopInfo = state.getWorkshopInfo(currentBooking.workshopId);
+          final vehicleInfo = state.getVehicleInfo(currentBooking.vehicleId);
 
           return Stack(
             children: [
@@ -71,11 +89,11 @@ class BookingDetailPage extends StatelessWidget {
                     const SizedBox(height: 16),
 
                     // Info del taller
-                    _buildWorkshopCard(context, currentBooking),
+                    _buildWorkshopCard(context, currentBooking, workshopInfo),
                     const SizedBox(height: 16),
 
                     // Info del vehículo
-                    _buildVehicleCard(context, currentBooking),
+                    _buildVehicleCard(context, currentBooking, vehicleInfo),
                     const SizedBox(height: 16),
 
                     // Servicios
@@ -178,69 +196,94 @@ class BookingDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildWorkshopCard(BuildContext context, ServiceBookingModel booking) {
+  Widget _buildWorkshopCard(BuildContext context, ServiceBookingModel booking, WorkshopProfileModel? workshopInfo) {
     final theme = Theme.of(context);
+    final workshop = workshopInfo;
     
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.business, color: theme.primaryColor),
-                const SizedBox(width: 8),
-                Text(
-                  'Taller',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BlocProvider(
+                create: (_) => WorkshopsCubit()..loadWorkshopProfile(booking.workshopId),
+                child: WorkshopDetailPage(workshopId: booking.workshopId),
+              ),
             ),
-            const Divider(height: 24),
-            // TODO: Obtener info real del taller
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: theme.primaryColor.withOpacity(0.1),
-                  child: Icon(Icons.build, color: theme.primaryColor),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Taller #${booking.workshopId}',
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        'Ver información del taller',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.primaryColor,
-                        ),
-                      ),
-                    ],
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.business, color: theme.primaryColor),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Taller',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Icon(Icons.arrow_forward_ios, 
-                    size: 16, color: Colors.grey.shade400),
-              ],
-            ),
-          ],
+                ],
+              ),
+              const Divider(height: 24),
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: theme.primaryColor.withOpacity(0.1),
+                    child: workshop?.hasLogo == true
+                        ? ClipOval(
+                            child: Image.network(
+                              workshop!.logoUrl!,
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(Icons.build, color: theme.primaryColor),
+                            ),
+                          )
+                        : Icon(Icons.build, color: theme.primaryColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          workshop?.name ?? 'Taller #${booking.workshopId}',
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          workshop != null ? 'Ver información del taller' : 'Cargando...',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.primaryColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios, 
+                      size: 16, color: Colors.grey.shade400),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildVehicleCard(BuildContext context, ServiceBookingModel booking) {
+  Widget _buildVehicleCard(BuildContext context, ServiceBookingModel booking, vehicleInfo) {
     final theme = Theme.of(context);
+    final vehicle = vehicleInfo;
     
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -262,8 +305,13 @@ class BookingDetailPage extends StatelessWidget {
               ],
             ),
             const Divider(height: 24),
-            // TODO: Obtener info real del vehículo
-            _buildInfoRow(context, 'ID', '#${booking.vehicleId}'),
+            if (vehicle != null) ...[
+              _buildInfoRow(context, 'Marca', vehicle.brandName ?? 'N/A'),
+              _buildInfoRow(context, 'Modelo', vehicle.model),
+              _buildInfoRow(context, 'Año', vehicle.year.toString()),
+              _buildInfoRow(context, 'Placa', vehicle.licensePlate),
+            ] else
+              _buildInfoRow(context, 'ID', '#${booking.vehicleId}'),
           ],
         ),
       ),

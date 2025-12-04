@@ -4,6 +4,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/forgot_password/forgot_password_pages.dart';
 import '../../features/bookings/bookings.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
 import '../../features/profile/presentation/pages/pages.dart';
 import 'auth_wrapper.dart';
 
@@ -22,6 +23,7 @@ class AppRouter {
   static const String editProfile = '/edit-profile';
   static const String changePassword = '/change-password';
   static const String bookings = '/bookings';
+  static const String notifications = '/notifications';
 
   /// Genera las rutas de la aplicación
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -89,6 +91,12 @@ class AppRouter {
           settings: settings,
         );
 
+      case notifications:
+        return MaterialPageRoute(
+          builder: (_) => const NotificationsPage(),
+          settings: settings,
+        );
+
       default:
         return MaterialPageRoute(
           builder: (_) => const AuthWrapper(),
@@ -145,6 +153,11 @@ class AppRouter {
   /// Navegar a bookings (mis reservas)
   static void toBookings(BuildContext context) {
     Navigator.pushNamed(context, bookings);
+  }
+
+  /// Navegar a notificaciones
+  static void toNotifications(BuildContext context) {
+    Navigator.pushNamed(context, notifications);
   }
 
   /// Volver atrás

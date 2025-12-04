@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/enums/status.dart';
+import '../../../vehicles/data/models/models.dart';
+import '../../../workshops/data/models/models.dart';
 import '../../data/models/models.dart';
 
 /// Filtro de estado para bookings
@@ -26,6 +28,10 @@ class BookingsState extends Equatable {
   final int totalElements;
   final bool hasMore;
   final bool isLoadingMore;
+  
+  // Cache de información de talleres y vehículos
+  final Map<int, WorkshopProfileModel> workshopsCache;
+  final Map<int, VehicleModel> vehiclesCache;
 
   const BookingsState({
     this.status = Status.initial,
@@ -39,6 +45,8 @@ class BookingsState extends Equatable {
     this.totalElements = 0,
     this.hasMore = false,
     this.isLoadingMore = false,
+    this.workshopsCache = const {},
+    this.vehiclesCache = const {},
   });
 
   /// Bookings filtrados según el filtro actual
@@ -84,6 +92,8 @@ class BookingsState extends Equatable {
     int? totalElements,
     bool? hasMore,
     bool? isLoadingMore,
+    Map<int, WorkshopProfileModel>? workshopsCache,
+    Map<int, VehicleModel>? vehiclesCache,
     bool clearSelectedBooking = false,
     bool clearError = false,
     bool clearSuccess = false,
@@ -100,7 +110,19 @@ class BookingsState extends Equatable {
       totalElements: totalElements ?? this.totalElements,
       hasMore: hasMore ?? this.hasMore,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      workshopsCache: workshopsCache ?? this.workshopsCache,
+      vehiclesCache: vehiclesCache ?? this.vehiclesCache,
     );
+  }
+  
+  /// Obtiene información del taller desde el cache
+  WorkshopProfileModel? getWorkshopInfo(int workshopId) {
+    return workshopsCache[workshopId];
+  }
+  
+  /// Obtiene información del vehículo desde el cache
+  VehicleModel? getVehicleInfo(int vehicleId) {
+    return vehiclesCache[vehicleId];
   }
 
   @override
@@ -116,6 +138,8 @@ class BookingsState extends Equatable {
         totalElements,
         hasMore,
         isLoadingMore,
+        workshopsCache,
+        vehiclesCache,
       ];
 }
 

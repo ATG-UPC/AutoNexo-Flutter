@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../cubit/cubit.dart';
 import '../../data/models/appointment_model.dart';
 
 /// Tarjeta para mostrar la cita actual/próxima
@@ -238,7 +240,8 @@ class NoAppointmentCard extends StatelessWidget {
           const SizedBox(height: 16),
           OutlinedButton.icon(
             onPressed: () {
-              // TODO: Navegar a crear solicitud de servicio
+              // Navegar a la sección de Service Requests (índice 2 del BottomNavBar)
+              context.read<HomeCubit>().changeNavIndex(2);
             },
             icon: const Icon(Icons.add),
             label: const Text('Nueva Solicitud'),

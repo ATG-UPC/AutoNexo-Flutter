@@ -165,4 +165,130 @@ class AppTheme {
       ),
     );
   }
+
+  /// Tema oscuro
+  static ThemeData darkTheme() {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+
+      // Colores
+      colorScheme: const ColorScheme.dark(
+        primary: secondaryLightBlueGray, // #7598B9
+        secondary: secondarySteelBlue, // #5C7896
+        tertiary: primaryBlue, // #202D36
+        surface: Color(0xFF1E1E1E), // Dark surface
+        error: secondaryCrimson, // #800C1F
+        onPrimary: textWhite, // White
+        onSecondary: textWhite, // White
+        onTertiary: textWhite, // White
+        onSurface: textWhite, // White
+        onError: textWhite, // White
+      ),
+
+      scaffoldBackgroundColor: const Color(0xFF121212),
+
+      // AppBar
+      appBarTheme: const AppBarTheme(
+        backgroundColor: primaryBlue,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
+        titleTextStyle: TextStyle(
+          color: Colors.white,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+
+      // Texto
+      textTheme: const TextTheme(
+        headlineLarge: TextStyle(
+          fontSize: 32,
+          fontWeight: FontWeight.bold,
+          color: textWhite,
+        ),
+        headlineMedium: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          color: textWhite,
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: textWhite,
+        ),
+        bodyLarge: TextStyle(fontSize: 16, color: textWhite),
+        bodyMedium: TextStyle(fontSize: 14, color: textWhite),
+        bodySmall: TextStyle(fontSize: 12, color: Color(0xFFB0B0B0)),
+        labelSmall: TextStyle(fontSize: 12, color: Color(0xFF808080)),
+      ),
+
+      // Input Decoration
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: const Color(0xFF1E1E1E),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF404040)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF404040)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: secondaryLightBlueGray, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: errorColor),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: errorColor, width: 2),
+        ),
+        hintStyle: const TextStyle(color: Color(0xFF808080), fontSize: 14),
+        labelStyle: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 14),
+      ),
+
+      // Botones
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: secondaryLightBlueGray, // #7598B9
+          foregroundColor: textWhite, // White
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 0,
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: secondaryLightBlueGray, // #7598B9
+          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+      ),
+
+      // Outlined Button Theme
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: secondaryLightBlueGray, // #7598B9
+          side: const BorderSide(color: secondaryLightBlueGray, width: 1.5),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+      ),
+    );
+  }
 }
