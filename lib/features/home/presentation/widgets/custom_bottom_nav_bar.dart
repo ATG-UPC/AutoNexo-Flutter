@@ -25,41 +25,52 @@ class CustomBottomNavBar extends StatelessWidget {
         ],
       ),
       child: SafeArea(
+        top: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisSize: MainAxisSize.max,
             children: [
-              _buildNavItem(
-                icon: Icons.home,
-                label: 'Inicio',
-                index: 0,
-                isSelected: currentIndex == 0,
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.home,
+                  label: 'Inicio',
+                  index: 0,
+                  isSelected: currentIndex == 0,
+                ),
               ),
-              _buildNavItem(
-                icon: Icons.directions_car,
-                label: 'Vehículos',
-                index: 1,
-                isSelected: currentIndex == 1,
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.directions_car,
+                  label: 'Vehículos',
+                  index: 1,
+                  isSelected: currentIndex == 1,
+                ),
               ),
-              _buildNavItem(
-                icon: Icons.handyman,
-                label: 'Servicios',
-                index: 2,
-                isSelected: currentIndex == 2,
-                isCenter: true,
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.handyman,
+                  label: 'Servicios',
+                  index: 2,
+                  isSelected: currentIndex == 2,
+                  isCenter: true,
+                ),
               ),
-              _buildNavItem(
-                icon: Icons.build,
-                label: 'Talleres',
-                index: 3,
-                isSelected: currentIndex == 3,
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.build,
+                  label: 'Talleres',
+                  index: 3,
+                  isSelected: currentIndex == 3,
+                ),
               ),
-              _buildNavItem(
-                icon: Icons.local_offer,
-                label: 'Ofertas',
-                index: 4,
-                isSelected: currentIndex == 4,
+              Expanded(
+                child: _buildNavItem(
+                  icon: Icons.local_offer,
+                  label: 'Ofertas',
+                  index: 4,
+                  isSelected: currentIndex == 4,
+                ),
               ),
             ],
           ),
@@ -78,28 +89,39 @@ class CustomBottomNavBar extends StatelessWidget {
     final Color selectedColor = const Color(0xFF5B7C99);
     final Color unselectedColor = Colors.grey[400]!;
 
-    return InkWell(
-      onTap: () => onTap(index),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? selectedColor : unselectedColor,
-              size: isCenter ? 32 : 24,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => onTap(index),
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          constraints: const BoxConstraints(),
+          padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
                 color: isSelected ? selectedColor : unselectedColor,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                size: isCenter ? 24 : 20,
               ),
-            ),
-          ],
+              const SizedBox(height: 2),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 9,
+                    color: isSelected ? selectedColor : unselectedColor,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

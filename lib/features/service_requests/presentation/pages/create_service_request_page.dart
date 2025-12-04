@@ -295,15 +295,15 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
           children: [
             // Opción de solicitud personalizada
             Container(
-              margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              margin: const EdgeInsets.fromLTRB(16, 0, 16, 3),
               child: Card(
                 color: _isCustomRequest 
                     ? Theme.of(context).primaryColor.withOpacity(0.1) 
                     : null,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   side: _isCustomRequest
-                      ? BorderSide(color: Theme.of(context).primaryColor, width: 2)
+                      ? BorderSide(color: Theme.of(context).primaryColor, width: 1.5)
                       : BorderSide.none,
                 ),
                 child: InkWell(
@@ -315,9 +315,9 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
                       }
                     });
                   },
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(8),
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     child: Row(
                       children: [
                         Icon(
@@ -327,27 +327,31 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
                           color: _isCustomRequest 
                               ? Theme.of(context).primaryColor 
                               : Colors.grey.shade600,
-                          size: 28,
+                          size: 18,
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Text(
                                 'Solicitud Personalizada',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                                  fontSize: 12,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 4),
                               Text(
-                                'No encuentro el servicio que necesito, prefiero describir mi problema',
+                                'No encuentro el servicio que necesito',
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 9,
                                   color: Colors.grey.shade600,
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
                           ),
@@ -362,15 +366,15 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
             if (!_isCustomRequest) ...[
               // Barra de búsqueda
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 3),
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'Buscar servicio...',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search, size: 20),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear, size: 20),
                             onPressed: () {
                               setState(() {
                                 _searchController.clear();
@@ -380,9 +384,10 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
                           )
                         : null,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    isDense: true,
                   ),
                   onChanged: (value) {
                     setState(() {
@@ -392,11 +397,11 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
                 ),
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 3),
 
               // Chips de categorías para navegación rápida
               SizedBox(
-                height: 44,
+                height: 34,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -453,25 +458,29 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
                 ),
               ),
 
-              const SizedBox(height: 8),
+              const SizedBox(height: 3),
 
               // Contador de servicios seleccionados
               if (_selectedServices.isNotEmpty)
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 16),
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                   decoration: BoxDecoration(
                     color: Theme.of(context).primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        '${_selectedServices.length} servicio(s) seleccionado(s)',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.w500,
+                      Flexible(
+                        child: Text(
+                          '${_selectedServices.length} servicio(s) seleccionado(s)',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 13,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       TextButton(
@@ -480,7 +489,15 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
                             _selectedServices.clear();
                           });
                         },
-                        child: const Text('Limpiar'),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        child: const Text(
+                          'Limpiar',
+                          style: TextStyle(fontSize: 13),
+                        ),
                       ),
                     ],
                   ),
@@ -490,28 +507,38 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
               Expanded(
                 child: filteredServices.isEmpty
                     ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.search_off, size: 48, color: Colors.grey.shade400),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No se encontraron servicios',
-                              style: TextStyle(color: Colors.grey.shade600),
-                            ),
-                            if (_searchQuery.isNotEmpty) ...[
-                              const SizedBox(height: 8),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.search_off, size: 40, color: Colors.grey.shade400),
+                              const SizedBox(height: 12),
                               Text(
-                                'Intenta con otros términos o usa "Solicitud Personalizada"',
-                                style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                                textAlign: TextAlign.center,
+                                'No se encontraron servicios',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 14,
+                                ),
                               ),
+                              if (_searchQuery.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  'Intenta con otros términos o usa "Solicitud Personalizada"',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 12,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
                             ],
-                          ],
+                          ),
                         ),
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         itemCount: filteredServices.length,
                         itemBuilder: (context, index) {
                           final service = filteredServices[index];
@@ -575,52 +602,53 @@ class _CreateServiceRequestPageState extends State<CreateServiceRequestPage> {
             ] else ...[
               // Mensaje para solicitud personalizada
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.thumb_up_outlined,
-                        size: 64,
+                        size: 50,
                         color: Theme.of(context).primaryColor,
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       const Text(
                         '¡Perfecto!',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Text(
                         'Podrás describir detalladamente tu problema en el siguiente paso. Los talleres revisarán tu solicitud y te contactarán con presupuestos personalizados.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           color: Colors.grey.shade600,
-                          height: 1.5,
+                          height: 1.3,
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       Container(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
                           color: Colors.amber.shade50,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.amber.shade200),
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.info_outline, color: Colors.amber.shade700),
-                            const SizedBox(width: 12),
+                            Icon(Icons.info_outline, color: Colors.amber.shade700, size: 18),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 'Asegúrate de proporcionar una descripción detallada en el siguiente paso para obtener mejores cotizaciones.',
                                 style: TextStyle(
                                   color: Colors.amber.shade900,
-                                  fontSize: 13,
+                                  fontSize: 11,
                                 ),
                               ),
                             ),

@@ -40,7 +40,7 @@ class _MainPageState extends State<MainPage> {
       ),
       // MyOffersPage envuelto en su BlocProvider
       BlocProvider(
-        create: (_) => ServiceRequestsCubit(),
+        create: (_) => OffersCubit(),
         child: const MyOffersPage(),
       ),
     ];

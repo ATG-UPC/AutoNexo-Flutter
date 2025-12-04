@@ -68,11 +68,15 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
                 }
               },
               builder: (context, state) {
-                if (state.status == Status.loading && state.searchResults.isEmpty) {
-                  return const LoadingPage(message: 'Buscando talleres cercanos...');
+                if (state.status == Status.loading &&
+                    state.searchResults.isEmpty) {
+                  return const LoadingPage(
+                    message: 'Buscando talleres cercanos...',
+                  );
                 }
 
-                if (state.status == Status.failure && state.searchResults.isEmpty) {
+                if (state.status == Status.failure &&
+                    state.searchResults.isEmpty) {
                   return _buildErrorState(context, state.errorMessage);
                 }
 
@@ -80,8 +84,8 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
                   return _buildEmptyState(context);
                 }
 
-                final sortedResults = _sortBy == 'rating' 
-                    ? state.resultsByRating 
+                final sortedResults = _sortBy == 'rating'
+                    ? state.resultsByRating
                     : state.resultsByDistance;
 
                 return RefreshIndicator(
@@ -100,7 +104,9 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
                               builder: (_) => BlocProvider.value(
                                 value: context.read<WorkshopsCubit>()
                                   ..loadWorkshopProfile(workshop.id),
-                                child: WorkshopDetailPage(workshopId: workshop.id),
+                                child: WorkshopDetailPage(
+                                  workshopId: workshop.id,
+                                ),
                               ),
                             ),
                           );
@@ -212,7 +218,7 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
 
   void _showFiltersBottomSheet(BuildContext context) {
     final cubit = context.read<WorkshopsCubit>();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -228,13 +234,12 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
               maxChildSize: 0.8,
               expand: false,
               builder: (context, scrollController) {
-                return Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Handle
-                      Center(
+                return Column(
+                  children: [
+                    // Handle
+                    Padding(
+                      padding: const EdgeInsets.only(top: 12, bottom: 8),
+                      child: Center(
                         child: Container(
                           width: 40,
                           height: 4,
@@ -244,88 +249,117 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 20),
-                      // Título
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Filtros de Búsqueda',
-                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        controller: scrollController,
+                        physics: const ClampingScrollPhysics(),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Título
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Filtros de Búsqueda',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      setSheetState(() {
+                                        _selectedRadius = 50;
+                                        _selectedMinRating = null;
+                                      });
+                                    },
+                                    child: const Text('Limpiar'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              // Radio de búsqueda
+                              Text(
+                                'Radio de búsqueda',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Slider(
+                                value: _selectedRadius.toDouble(),
+                                min: 5,
+                                max: 100,
+                                divisions: 19,
+                                label: '$_selectedRadius km',
+                                onChanged: (value) {
+                                  setSheetState(() {
+                                    _selectedRadius = value.toInt();
+                                  });
+                                },
+                              ),
+                              Text(
+                                '$_selectedRadius km',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: Colors.grey.shade600),
+                              ),
+                              const SizedBox(height: 24),
+                              // Rating mínimo
+                              Text(
+                                'Rating mínimo',
+                                style: Theme.of(context).textTheme.titleSmall,
+                              ),
+                              const SizedBox(height: 8),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _buildRatingChip(
+                                    null,
+                                    'Todos',
+                                    setSheetState,
+                                  ),
+                                  _buildRatingChip(3.0, '3+', setSheetState),
+                                  _buildRatingChip(3.5, '3.5+', setSheetState),
+                                  _buildRatingChip(4.0, '4+', setSheetState),
+                                  _buildRatingChip(4.5, '4.5+', setSheetState),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+                              // Botón aplicar
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  bottom:
+                                      MediaQuery.of(context).viewInsets.bottom +
+                                      20,
+                                ),
+                                child: SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.pop(context);
+                                      cubit.updateSearchRadius(_selectedRadius);
+                                      cubit.updateMinRating(_selectedMinRating);
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 14,
+                                      ),
+                                    ),
+                                    child: const Text('Aplicar Filtros'),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          TextButton(
-                            onPressed: () {
-                              setSheetState(() {
-                                _selectedRadius = 50;
-                                _selectedMinRating = null;
-                              });
-                            },
-                            child: const Text('Limpiar'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-                      // Radio de búsqueda
-                      Text(
-                        'Radio de búsqueda',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Slider(
-                        value: _selectedRadius.toDouble(),
-                        min: 5,
-                        max: 100,
-                        divisions: 19,
-                        label: '$_selectedRadius km',
-                        onChanged: (value) {
-                          setSheetState(() {
-                            _selectedRadius = value.toInt();
-                          });
-                        },
-                      ),
-                      Text(
-                        '$_selectedRadius km',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade600,
                         ),
                       ),
-                      const SizedBox(height: 24),
-                      // Rating mínimo
-                      Text(
-                        'Rating mínimo',
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          _buildRatingChip(null, 'Todos', setSheetState),
-                          _buildRatingChip(3.0, '3+', setSheetState),
-                          _buildRatingChip(3.5, '3.5+', setSheetState),
-                          _buildRatingChip(4.0, '4+', setSheetState),
-                          _buildRatingChip(4.5, '4.5+', setSheetState),
-                        ],
-                      ),
-                      const Spacer(),
-                      // Botón aplicar
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            cubit.updateSearchRadius(_selectedRadius);
-                            cubit.updateMinRating(_selectedMinRating);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                          ),
-                          child: const Text('Aplicar Filtros'),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               },
             );
@@ -335,7 +369,11 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
     );
   }
 
-  Widget _buildRatingChip(double? rating, String label, StateSetter setSheetState) {
+  Widget _buildRatingChip(
+    double? rating,
+    String label,
+    StateSetter setSheetState,
+  ) {
     final isSelected = _selectedMinRating == rating;
     final theme = Theme.of(context);
 
@@ -361,9 +399,7 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
         });
       },
       selectedColor: theme.primaryColor,
-      labelStyle: TextStyle(
-        color: isSelected ? Colors.white : Colors.black87,
-      ),
+      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black87),
       checkmarkColor: Colors.white,
     );
   }
@@ -375,11 +411,7 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.red.shade300,
-            ),
+            Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
             const SizedBox(height: 16),
             Text(
               'Error al buscar talleres',
@@ -410,11 +442,7 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
+            Icon(Icons.search_off, size: 80, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
               'No se encontraron talleres',
@@ -438,4 +466,3 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
     );
   }
 }
-

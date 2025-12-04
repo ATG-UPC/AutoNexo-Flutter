@@ -5,6 +5,7 @@ import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/forgot_password/forgot_password_pages.dart';
 import '../../features/bookings/bookings.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
+import '../../features/offers/offers.dart';
 import '../../features/profile/presentation/pages/pages.dart';
 import 'auth_wrapper.dart';
 
@@ -93,7 +94,10 @@ class AppRouter {
 
       case notifications:
         return MaterialPageRoute(
-          builder: (_) => const NotificationsPage(),
+          builder: (_) => BlocProvider(
+            create: (_) => OffersCubit()..loadMyOffers(),
+            child: const NotificationsPage(),
+          ),
           settings: settings,
         );
 

@@ -6,12 +6,18 @@ class OfferCard extends StatelessWidget {
   final OfferModel offer;
   final WorkshopPublicModel? workshop;
   final VoidCallback? onTap;
+  final Future<bool> Function(int offerId)? onAccept;
+  final Future<bool> Function(int offerId)? onReject;
+  final bool isProcessing;
 
   const OfferCard({
     super.key,
     required this.offer,
     this.workshop,
     this.onTap,
+    this.onAccept,
+    this.onReject,
+    this.isProcessing = false,
   });
 
   @override
@@ -192,11 +198,172 @@ class OfferCard extends StatelessWidget {
                   ),
                 ),
               ],
+
+              // Botones de acción (solo si está pendiente y no expirada)
+              if (isPending && !offer.isExpired && (onAccept != null || onReject != null)) ...[
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                _buildActionButtons(context),
+              ],
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    return Row(
+      children: [
+        // Botón Rechazar
+        if (onReject != null)
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: isProcessing
+                  ? null
+                  : () => _handleReject(context),
+              icon: const Icon(Icons.close, size: 18),
+              label: const Text('Rechazar'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        if (onReject != null && onAccept != null) const SizedBox(width: 12),
+        // Botón Aceptar
+        if (onAccept != null)
+          Expanded(
+            flex: 2,
+            child: ElevatedButton.icon(
+              onPressed: isProcessing
+                  ? null
+                  : () => _handleAccept(context),
+              icon: isProcessing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.check, size: 18),
+              label: Text(isProcessing ? 'Procesando...' : 'Aceptar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _handleAccept(BuildContext context) async {
+    if (onAccept == null) return;
+
+    // Mostrar diálogo de confirmación
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirmar Aceptación'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                '¿Estás seguro de aceptar esta oferta?',
+                style: TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Precio: ${offer.formattedPrice}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text('Fecha: ${offer.formattedProposedDateTime}'),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Se creará una reserva y el taller será notificado.',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await onAccept!(offer.id);
+    }
+  }
+
+  Future<void> _handleReject(BuildContext context) async {
+    if (onReject == null) return;
+
+    // Mostrar diálogo de confirmación
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirmar Rechazo'),
+          content: const Text(
+            '¿Estás seguro de rechazar esta oferta?\n\nEsta acción no se puede deshacer.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Rechazar'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      await onReject!(offer.id);
+    }
   }
 
   Widget _buildWorkshopLogo() {

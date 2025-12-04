@@ -8,10 +8,7 @@ import 'offer_detail_page.dart';
 class OffersListPage extends StatefulWidget {
   final int serviceRequestId;
 
-  const OffersListPage({
-    super.key,
-    required this.serviceRequestId,
-  });
+  const OffersListPage({super.key, required this.serviceRequestId});
 
   @override
   State<OffersListPage> createState() => _OffersListPageState();
@@ -54,8 +51,7 @@ class _OffersListPageState extends State<OffersListPage> {
                     Text(
                       'Ordenar por precio',
                       style: TextStyle(
-                        fontWeight:
-                            _sortBy == 'price' ? FontWeight.bold : null,
+                        fontWeight: _sortBy == 'price' ? FontWeight.bold : null,
                       ),
                     ),
                   ],
@@ -116,9 +112,7 @@ class _OffersListPageState extends State<OffersListPage> {
         },
         builder: (context, state) {
           if (state.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (!state.hasOffers) {
@@ -168,11 +162,7 @@ class _OffersListPageState extends State<OffersListPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor.withOpacity(0.05),
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey.shade200,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
       ),
       child: Row(
         children: [
@@ -203,10 +193,7 @@ class _OffersListPageState extends State<OffersListPage> {
                   const SizedBox(height: 4),
                   Text(
                     '$pendingCount pendiente${pendingCount == 1 ? '' : 's'} de respuesta',
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                   ),
                 ],
               ],
@@ -224,18 +211,11 @@ class _OffersListPageState extends State<OffersListPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.hourglass_empty,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
+            Icon(Icons.hourglass_empty, size: 80, color: Colors.grey.shade400),
             const SizedBox(height: 24),
             const Text(
               'Aún no hay ofertas',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Text(
@@ -262,21 +242,23 @@ class _OffersListPageState extends State<OffersListPage> {
   }
 
   void _navigateToDetail(BuildContext context, offer) {
-    context.read<OffersCubit>().selectOffer(offer);
+    // Capturar el cubit ANTES de navegar, usando el context que sí tiene acceso
+    final offersCubit = context.read<OffersCubit>();
+    offersCubit.selectOffer(offer);
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => BlocProvider.value(
-          value: context.read<OffersCubit>(),
+        builder: (_) => BlocProvider.value(
+          value: offersCubit,
           child: const OfferDetailPage(),
         ),
       ),
     ).then((_) {
       // Limpiar selección al volver
       if (mounted) {
-        context.read<OffersCubit>().clearSelectedOffer();
+        offersCubit.clearSelectedOffer();
       }
     });
   }
 }
-

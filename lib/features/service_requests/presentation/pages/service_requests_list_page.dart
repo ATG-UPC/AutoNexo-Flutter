@@ -50,79 +50,108 @@ class _ServiceRequestsListPageState extends State<ServiceRequestsListPage> {
       },
       builder: (context, state) {
         return RefreshIndicator(
-          onRefresh: () => context.read<ServiceRequestsCubit>().loadInitialData(),
-          child: CustomScrollView(
-            slivers: [
-              // Header
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Solicitudes de Servicio',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Gestiona tus solicitudes de servicio automotriz',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Filtros
-              SliverToBoxAdapter(
-                child: _buildFilterChips(context, state),
-              ),
-
-              // Loading indicator
-              if (state.isLoading)
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.all(40),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                )
-              // Empty state
-              else if (state.serviceRequests.isEmpty)
+            onRefresh: () => context.read<ServiceRequestsCubit>().loadInitialData(),
+            child: CustomScrollView(
+              slivers: [
+                // Header
                 SliverToBoxAdapter(
-                  child: _buildEmptyState(context),
-                )
-              // Lista de solicitudes
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final request = state.filteredRequests[index];
-                        return _ServiceRequestCard(
-                          request: request,
-                          onTap: () => _navigateToDetail(context, request),
-                        );
-                      },
-                      childCount: state.filteredRequests.length,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Solicitudes de Servicio',
+                                    style: TextStyle(
+                                      fontSize: 28,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: -0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Gestiona tus solicitudes de servicio automotriz',
+                                    style: TextStyle(
+                                      fontSize: 15,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // Botón para crear solicitud
+                            ElevatedButton.icon(
+                              onPressed: () => _navigateToCreate(context),
+                              icon: const Icon(Icons.add, size: 20),
+                              label: const Text('Nueva'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Theme.of(context).primaryColor,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),
 
-              // Espacio al final
-              const SliverToBoxAdapter(
-                child: SizedBox(height: 100),
-              ),
-            ],
-          ),
+                // Filtros
+                SliverToBoxAdapter(
+                  child: _buildFilterChips(context, state),
+                ),
+
+                // Loading indicator
+                if (state.isLoading)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  )
+                // Empty state
+                else if (state.filteredRequests.isEmpty)
+                  SliverToBoxAdapter(
+                    child: _buildEmptyState(context, state.serviceRequests.isEmpty),
+                  )
+                // Lista de solicitudes
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final request = state.filteredRequests[index];
+                          return _ServiceRequestCard(
+                            request: request,
+                            onTap: () => _navigateToDetail(context, request),
+                          );
+                        },
+                        childCount: state.filteredRequests.length,
+                      ),
+                    ),
+                  ),
+
+                // Espacio al final para el FAB
+                const SliverToBoxAdapter(
+                  child: SizedBox(height: 100),
+                ),
+              ],
+            ),
         );
       },
     );
@@ -168,7 +197,7 @@ class _ServiceRequestsListPageState extends State<ServiceRequestsListPage> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, bool noRequestsAtAll) {
     return Padding(
       padding: const EdgeInsets.all(40),
       child: Column(
@@ -181,7 +210,7 @@ class _ServiceRequestsListPageState extends State<ServiceRequestsListPage> {
           ),
           const SizedBox(height: 24),
           Text(
-            'Sin solicitudes',
+            noRequestsAtAll ? 'Sin solicitudes' : 'No hay solicitudes con este filtro',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
@@ -190,20 +219,13 @@ class _ServiceRequestsListPageState extends State<ServiceRequestsListPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Crea tu primera solicitud de servicio\npara encontrar talleres cercanos',
+            noRequestsAtAll
+                ? 'Crea tu primera solicitud de servicio\npara encontrar talleres cercanos'
+                : 'No se encontraron solicitudes con el filtro seleccionado.\nIntenta con otro filtro o crea una nueva solicitud.',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 15,
               color: Colors.grey.shade500,
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () => _navigateToCreate(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Nueva Solicitud'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),
         ],
@@ -232,7 +254,12 @@ class _ServiceRequestsListPageState extends State<ServiceRequestsListPage> {
           child: const CreateServiceRequestPage(),
         ),
       ),
-    );
+    ).then((_) {
+      // Recargar solicitudes al volver de crear una nueva
+      if (mounted) {
+        context.read<ServiceRequestsCubit>().loadServiceRequests();
+      }
+    });
   }
 }
 
