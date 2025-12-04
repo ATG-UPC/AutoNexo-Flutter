@@ -149,15 +149,19 @@ class BookingsRepository {
         body['reason'] = reason;
       }
 
-      final response = await _apiClient.post(
+      // El backend espera DELETE con body opcional
+      final response = await _apiClient.delete(
         ApiConstants.cancelBookingEndpoint(id),
-        body: body,
+        body: body.isNotEmpty ? body : null,
       );
 
+      // Si DELETE retorna 204 (No Content), intentar obtener el booking actualizado
       if (response == null) {
-        throw Exception('Error al cancelar la reserva');
+        // Si no hay respuesta, intentar obtener el booking actualizado
+        return await getBookingById(id);
       }
 
+      // Si hay respuesta, parsearla como ServiceBookingModel
       return ServiceBookingModel.fromJson(response as Map<String, dynamic>);
     } on SocketException {
       throw Exception('Error de conexión. Verifica tu conexión a internet.');

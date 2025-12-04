@@ -30,10 +30,10 @@ class ApiConstants {
   static const String serviceBookingsEndpoint = '/service-bookings';
   
   // Endpoints de Bookings (reservas de servicio)
-  static const String myBookingsEndpoint = '/service-bookings/my-bookings';
+  static const String myBookingsEndpoint = '/service-bookings';
   static String bookingByIdEndpoint(int id) => '/service-bookings/$id';
   static String confirmPickupEndpoint(int id) => '/service-bookings/$id/confirm-pickup';
-  static String cancelBookingEndpoint(int id) => '/service-bookings/$id/cancel';
+  static String cancelBookingEndpoint(int id) => '/service-bookings/$id';
 
   // Endpoints de Profile
   static const String updateProfileEndpoint = '/users/profile';
@@ -90,6 +90,20 @@ class ApiConstants {
   
   /// Rechaza una oferta
   static String rejectOfferFullUrl(int offerId) => '$_offersBaseUrl/offers/$offerId/reject';
+
+  // Endpoints de Reviews (sin prefijo v1)
+  // NOTA: Estos endpoints usan /api en lugar de /api/v1
+  static String get _reviewsBaseUrl {
+    if (_isProduction) {
+      return 'https://autonexo-backend-akcsb5avacemdwh7.canadacentral-01.azurewebsites.net/api';
+    }
+    return 'http://localhost:8080/api';
+  }
+  static String get reviewsBaseUrl => _reviewsBaseUrl;
+  static String reviewsWindowStatusUrl(int bookingId) => '$_reviewsBaseUrl/reviews/window-status?serviceBookingId=$bookingId';
+  static String reviewsReceivedWorkshopsUrl(int workshopId, {int page = 0, int size = 20}) => 
+      '$_reviewsBaseUrl/reviews/received/workshops/$workshopId?page=$page&size=$size';
+  static String get reviewsCreateUrl => '$_reviewsBaseUrl/reviews';
 
   // Endpoints de Workshops (públicos)
   static const String workshopSearchEndpoint = '/workshops/search';

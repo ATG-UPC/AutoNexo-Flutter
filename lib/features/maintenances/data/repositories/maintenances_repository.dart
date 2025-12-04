@@ -83,7 +83,27 @@ class MaintenancesRepository {
         );
       }
 
-      return PaginatedMaintenancesResponse.fromJson(response as Map<String, dynamic>);
+      // Manejar tanto List como Map<String, dynamic>
+      if (response is List) {
+        // Si la respuesta es una lista directa, convertir a formato paginado
+        final list = response as List<dynamic>;
+        return PaginatedMaintenancesResponse(
+          content: list
+              .map((e) => MaintenanceModel.fromJson(e as Map<String, dynamic>))
+              .toList(),
+          totalElements: list.length,
+          totalPages: 1,
+          currentPage: page,
+          pageSize: size,
+          isFirst: page == 0,
+          isLast: true,
+        );
+      } else if (response is Map<String, dynamic>) {
+        // Si la respuesta es un objeto paginado, parsearlo normalmente
+        return PaginatedMaintenancesResponse.fromJson(response);
+      } else {
+        throw Exception('Formato de respuesta no reconocido: ${response.runtimeType}');
+      }
     } on SocketException {
       throw Exception('Sin conexión a internet');
     } on TimeoutException {
