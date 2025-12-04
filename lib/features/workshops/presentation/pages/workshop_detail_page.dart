@@ -524,3 +524,4 @@ class WorkshopDetailPage extends StatelessWidget {
 }
 
 
+
