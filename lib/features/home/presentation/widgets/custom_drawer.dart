@@ -30,19 +30,28 @@ class _CustomDrawerState extends State<CustomDrawer> {
     // TODO: Implementar cambio de tema real
   }
 
-  void _logout() {
-    // Cerrar drawer primero
-    Navigator.of(context).pop();
+  void _logout() async {
+    // Capturar referencias ANTES de cerrar el drawer para evitar "widget unmounted"
+    final authBloc = context.read<AuthBloc>();
+    final navigator = Navigator.of(context);
 
-    // Ejecutar logout
-    context.read<AuthBloc>().add(const AuthLogoutRequested());
+    // Cerrar drawer
+    navigator.pop();
 
-    // Navegar al login
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (context.mounted) {
-        AppRouter.toLogin(context);
-      }
-    });
+    // Ejecutar logout (esto limpia el token y datos del usuario)
+    authBloc.add(const AuthLogoutRequested());
+
+    // Pequeño delay para que el BLoC procese el evento
+    await Future.delayed(const Duration(milliseconds: 100));
+
+    // Navegar a la ruta inicial donde AuthWrapper manejará el estado
+    if (mounted) {
+      // Limpiar todo el stack de navegación y ir a la ruta inicial
+      navigator.pushNamedAndRemoveUntil(
+        AppRouter.initial,
+        (route) => false,
+      );
+    }
   }
 
   @override
@@ -68,6 +77,14 @@ class _CustomDrawerState extends State<CustomDrawer> {
                     onTap: () {
                       Navigator.pop(context);
                       AppRouter.toProfile(context);
+                    },
+                  ),
+                  _buildMenuItem(
+                    icon: Icons.calendar_month_outlined,
+                    title: 'Mis Reservas',
+                    onTap: () {
+                      Navigator.pop(context);
+                      AppRouter.toBookings(context);
                     },
                   ),
                   _buildMenuItem(

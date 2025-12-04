@@ -1,20 +1,17 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/services/secure_storage_service.dart';
 import '../models/models.dart';
 
 /// Repositorio de autenticación
 class AuthRepository {
   final http.Client _httpClient;
-  final FlutterSecureStorage _secureStorage;
+  final SecureStorageService _storage;
 
-  static const String _tokenKey = 'jwt_token';
-  static const String _userKey = 'user_data';
-
-  AuthRepository({http.Client? httpClient, FlutterSecureStorage? secureStorage})
+  AuthRepository({http.Client? httpClient, SecureStorageService? storage})
     : _httpClient = httpClient ?? http.Client(),
-      _secureStorage = secureStorage ?? const FlutterSecureStorage();
+      _storage = storage ?? SecureStorageService();
 
   /// Registrar nuevo usuario
   Future<void> signup({
@@ -175,37 +172,40 @@ class AuthRepository {
 
   /// Guardar datos de autenticación
   Future<void> _saveAuthData(AuthResponse authResponse) async {
-    await _secureStorage.write(key: _tokenKey, value: authResponse.token);
-    await _secureStorage.write(
-      key: _userKey,
-      value: jsonEncode(authResponse.user.toJson()),
-    );
+    // Guardar token usando SecureStorageService (clave: 'auth_token')
+    await _storage.saveToken(authResponse.token);
+    // Guardar datos del usuario
+    await _storage.saveUserData(jsonEncode(authResponse.user.toJson()));
   }
 
   /// Obtener token guardado
   Future<String?> getToken() async {
-    return await _secureStorage.read(key: _tokenKey);
+    return await _storage.getToken();
   }
 
   /// Obtener usuario guardado
   Future<UserModel?> getUser() async {
-    final userJson = await _secureStorage.read(key: _userKey);
-    if (userJson != null) {
-      return UserModel.fromJson(jsonDecode(userJson));
+    final userJson = await _storage.getUserData();
+    if (userJson != null && userJson.isNotEmpty) {
+      try {
+        return UserModel.fromJson(jsonDecode(userJson));
+      } catch (e) {
+        // Si hay error al parsear, limpiar datos corruptos
+        await _storage.deleteUserData();
+        return null;
+      }
     }
     return null;
   }
 
   /// Verificar si el usuario está autenticado
   Future<bool> isAuthenticated() async {
-    final token = await getToken();
-    return token != null;
+    return await _storage.hasToken();
   }
 
   /// Cerrar sesión
   Future<void> logout() async {
-    await _secureStorage.delete(key: _tokenKey);
-    await _secureStorage.delete(key: _userKey);
+    await _storage.clearSession();
   }
 
   // ========== FORGOT PASSWORD FLOW ==========

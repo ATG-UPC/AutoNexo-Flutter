@@ -32,32 +32,32 @@ class CustomBottomNavBar extends StatelessWidget {
             children: [
               _buildNavItem(
                 icon: Icons.home,
-                label: 'Home',
+                label: 'Inicio',
                 index: 0,
                 isSelected: currentIndex == 0,
               ),
               _buildNavItem(
                 icon: Icons.directions_car,
-                label: 'Vehicles',
+                label: 'Vehículos',
                 index: 1,
                 isSelected: currentIndex == 1,
               ),
               _buildNavItem(
-                icon: Icons.add_circle,
-                label: 'Request',
+                icon: Icons.handyman,
+                label: 'Servicios',
                 index: 2,
                 isSelected: currentIndex == 2,
                 isCenter: true,
               ),
               _buildNavItem(
                 icon: Icons.build,
-                label: 'Workshop',
+                label: 'Talleres',
                 index: 3,
                 isSelected: currentIndex == 3,
               ),
               _buildNavItem(
                 icon: Icons.local_offer,
-                label: 'Offer',
+                label: 'Ofertas',
                 index: 4,
                 isSelected: currentIndex == 4,
               ),

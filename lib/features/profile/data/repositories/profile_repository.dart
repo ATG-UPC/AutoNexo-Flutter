@@ -1,24 +1,24 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/constants/api_constants.dart';
+import '../../../../core/services/secure_storage_service.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../models/models.dart';
 
 /// Repositorio para gestión de perfil
 class ProfileRepository {
   final http.Client _httpClient;
-  final FlutterSecureStorage _secureStorage;
+  final SecureStorageService _storage;
 
   ProfileRepository({
     http.Client? httpClient,
-    FlutterSecureStorage? secureStorage,
+    SecureStorageService? storage,
   }) : _httpClient = httpClient ?? http.Client(),
-       _secureStorage = secureStorage ?? const FlutterSecureStorage();
+       _storage = storage ?? SecureStorageService();
 
   /// Obtener token de autenticación
   Future<String?> _getToken() async {
-    return await _secureStorage.read(key: 'jwt_token');
+    return await _storage.getToken();
   }
 
   /// Actualizar perfil del usuario
@@ -49,10 +49,7 @@ class ProfileRepository {
         final updatedUser = UserModel.fromJson(data);
 
         // Actualizar usuario en storage
-        await _secureStorage.write(
-          key: 'user_data',
-          value: jsonEncode(updatedUser.toJson()),
-        );
+        await _storage.saveUserData(jsonEncode(updatedUser.toJson()));
 
         return updatedUser;
       } else if (response.statusCode == 400) {

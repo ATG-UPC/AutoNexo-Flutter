@@ -1,0 +1,2 @@
+export 'offer_card.dart';
+

@@ -25,6 +25,7 @@ class MainApp extends StatelessWidget {
         BlocProvider.value(value: di.forgotPasswordCubit),
         BlocProvider.value(value: di.homeCubit),
         BlocProvider.value(value: di.profileCubit),
+        BlocProvider.value(value: di.vehiclesCubit),
       ],
       child: MaterialApp(
         title: 'AutoNexo Owner',

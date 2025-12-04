@@ -16,6 +16,16 @@ dependencies:
   
   # HTTP & API
   http: ^1.1.0
+  http_parser: ^4.0.2
+  
+  # Image Picker
+  image_picker: ^1.0.7
+  
+  # Location
+  geolocator: ^10.1.0
+  
+  # URL Launcher
+  url_launcher: ^6.2.0
   
   # Storage
   shared_preferences: ^2.2.2

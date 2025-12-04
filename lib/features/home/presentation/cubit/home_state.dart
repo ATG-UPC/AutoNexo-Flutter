@@ -18,21 +18,34 @@ class HomeState extends Equatable {
     this.selectedNavIndex = 0,
   });
 
+  /// Copiar estado con nuevos valores
+  /// 
+  /// [clearError]: Si es true, limpia el errorMessage
   HomeState copyWith({
     Status? status,
     String? errorMessage,
     AppointmentModel? currentAppointment,
     List<ScheduleSlotModel>? scheduleSlots,
     int? selectedNavIndex,
+    bool clearError = false,
   }) {
     return HomeState(
       status: status ?? this.status,
-      errorMessage: errorMessage,
+      errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       currentAppointment: currentAppointment ?? this.currentAppointment,
       scheduleSlots: scheduleSlots ?? this.scheduleSlots,
       selectedNavIndex: selectedNavIndex ?? this.selectedNavIndex,
     );
   }
+
+  /// Verificar si hay un error para mostrar
+  bool get hasError => errorMessage != null && errorMessage!.isNotEmpty;
+
+  /// Verificar si está cargando
+  bool get isLoading => status == Status.loading;
+
+  /// Verificar si tiene datos cargados
+  bool get hasData => currentAppointment != null || scheduleSlots.isNotEmpty;
 
   @override
   List<Object?> get props => [

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/pages/forgot_password/forgot_password_pages.dart';
+import '../../features/bookings/bookings.dart';
 import '../../features/profile/presentation/pages/pages.dart';
 import 'auth_wrapper.dart';
 
@@ -19,6 +21,7 @@ class AppRouter {
   static const String profile = '/profile';
   static const String editProfile = '/edit-profile';
   static const String changePassword = '/change-password';
+  static const String bookings = '/bookings';
 
   /// Genera las rutas de la aplicación
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -77,6 +80,15 @@ class AppRouter {
           settings: settings,
         );
 
+      case bookings:
+        return MaterialPageRoute(
+          builder: (_) => BlocProvider(
+            create: (_) => BookingsCubit()..loadBookings(),
+            child: const BookingsListPage(),
+          ),
+          settings: settings,
+        );
+
       default:
         return MaterialPageRoute(
           builder: (_) => const AuthWrapper(),
@@ -128,6 +140,11 @@ class AppRouter {
   /// Navegar a change password
   static void toChangePassword(BuildContext context) {
     Navigator.pushNamed(context, changePassword);
+  }
+
+  /// Navegar a bookings (mis reservas)
+  static void toBookings(BuildContext context) {
+    Navigator.pushNamed(context, bookings);
   }
 
   /// Volver atrás
