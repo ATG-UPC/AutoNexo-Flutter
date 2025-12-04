@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/ui/theme/app_theme.dart';
 import '../../../../core/ui/widgets/widgets.dart';
+import '../../../maintenances/maintenances.dart';
 import '../../data/models/models.dart';
 import '../../data/repositories/vehicle_repository.dart';
 import '../cubit/cubit.dart';
@@ -392,6 +393,11 @@ class _VehicleDetailPageState extends State<VehicleDetailPage> {
 
                         // Sección de usuarios autorizados
                         if (!_isEditing) _buildAuthorizedUsersSection(vehicle),
+
+                        const SizedBox(height: 24),
+
+                        // Sección de historial de mantenimientos
+                        if (!_isEditing) _buildMaintenancesSection(vehicle),
 
                         const SizedBox(height: 24),
 
@@ -913,6 +919,124 @@ class _VehicleDetailPageState extends State<VehicleDetailPage> {
         ),
       );
     }
+  }
+
+  Widget _buildMaintenancesSection(VehicleModel vehicle) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.build_circle, color: AppTheme.secondarySteelBlue, size: 20),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Mantenimientos',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline, color: AppTheme.secondarySteelBlue),
+                onPressed: () => _navigateToCreateMaintenance(vehicle),
+                tooltip: 'Agregar mantenimiento',
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          
+          // Descripción
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppTheme.gray1.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.history, color: AppTheme.gray2, size: 20),
+                    const SizedBox(width: 12),
+                    const Expanded(
+                      child: Text(
+                        'Lleva el registro de mantenimientos de tu vehículo',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Color(0xFF8D99AE),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _navigateToMaintenances(vehicle),
+                    icon: const Icon(Icons.visibility, size: 18),
+                    label: const Text('Ver Historial'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.secondarySteelBlue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToMaintenances(VehicleModel vehicle) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => MaintenancesCubit(),
+          child: MaintenancesListPage(
+            vehicleId: vehicle.id,
+            vehicleName: '${vehicle.brandName} ${vehicle.model}',
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _navigateToCreateMaintenance(VehicleModel vehicle) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => MaintenancesCubit(),
+          child: CreateManualMaintenancePage(vehicleId: vehicle.id),
+        ),
+      ),
+    );
   }
 
   Widget _buildEditableFields() {

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/enums/status.dart';
 import '../../../../core/ui/widgets/widgets.dart';
+import '../../../reviews/reviews.dart';
 import '../../data/models/models.dart';
 import '../cubit/cubit.dart';
 import '../widgets/widgets.dart';
@@ -396,42 +397,9 @@ class BookingDetailPage extends StatelessWidget {
 
   Widget _buildActionButtons(BuildContext context, ServiceBookingModel booking, 
       bool isProcessing) {
-    final theme = Theme.of(context);
-
     // Si el booking ya está recogido, mostrar opción de review
     if (booking.status == ServiceBookingStatus.PICKED_UP) {
-      return Center(
-        child: Column(
-          children: [
-            Icon(Icons.check_circle, size: 48, color: Colors.green.shade600),
-            const SizedBox(height: 8),
-            Text(
-              '¡Servicio completado!',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.green.shade700,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Gracias por usar AutoNexo',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-            const SizedBox(height: 16),
-            // TODO: Agregar botón para dejar review cuando se implemente
-            OutlinedButton.icon(
-              onPressed: () {
-                // TODO: Navegar a página de review
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Funcionalidad de reviews próximamente')),
-                );
-              },
-              icon: const Icon(Icons.star_outline),
-              label: const Text('Dejar una Reseña'),
-            ),
-          ],
-        ),
-      );
+      return _buildCompletedSection(context, booking);
     }
 
     // Si está cancelado, no mostrar acciones
@@ -480,6 +448,69 @@ class BookingDetailPage extends StatelessWidget {
         ],
       ],
     );
+  }
+
+  Widget _buildCompletedSection(BuildContext context, ServiceBookingModel booking) {
+    final theme = Theme.of(context);
+
+    return Center(
+      child: Column(
+        children: [
+          Icon(Icons.check_circle, size: 48, color: Colors.green.shade600),
+          const SizedBox(height: 8),
+          Text(
+            '¡Servicio completado!',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: Colors.green.shade700,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Gracias por usar AutoNexo',
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
+          const SizedBox(height: 16),
+          // Botón para dejar review
+          ElevatedButton.icon(
+            onPressed: () => _navigateToCreateReview(context, booking),
+            icon: const Icon(Icons.star),
+            label: const Text('Dejar una Reseña'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber.shade600,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToCreateReview(BuildContext context, ServiceBookingModel booking) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BlocProvider(
+          create: (_) => ReviewsCubit(),
+          child: CreateReviewPage(
+            serviceBookingId: booking.id,
+            workshopId: booking.workshopId,
+            workshopName: 'Taller #${booking.workshopId}',
+          ),
+        ),
+      ),
+    ).then((result) {
+      if (result == true) {
+        // La reseña fue enviada exitosamente
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('¡Gracias por tu reseña!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    });
   }
 
   void _showConfirmPickupDialog(BuildContext context, int bookingId) {

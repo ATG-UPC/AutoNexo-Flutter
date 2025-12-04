@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../offers/offers.dart';
 import '../../../service_requests/service_requests.dart';
 import '../../../vehicles/presentation/pages/vehicles_list_page.dart';
 import '../../../workshops/workshops.dart';
@@ -37,7 +38,11 @@ class _MainPageState extends State<MainPage> {
         create: (_) => WorkshopsCubit(),
         child: const WorkshopSearchPage(),
       ),
-      const _PlaceholderPage(title: 'Ofertas', icon: Icons.local_offer),
+      // MyOffersPage envuelto en su BlocProvider
+      BlocProvider(
+        create: (_) => ServiceRequestsCubit(),
+        child: const MyOffersPage(),
+      ),
     ];
   }
 
@@ -66,95 +71,4 @@ class _MainPageState extends State<MainPage> {
     );
   }
 }
-
-/// Página placeholder para secciones no implementadas
-class _PlaceholderPage extends StatelessWidget {
-  final String title;
-  final IconData icon;
-
-  const _PlaceholderPage({
-    required this.title,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Color(0xFF5B7C99),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Content
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF5B7C99).withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        icon,
-                        size: 80,
-                        color: const Color(0xFF5B7C99),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF2B2D42),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Próximamente',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Color(0xFF8D99AE),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 

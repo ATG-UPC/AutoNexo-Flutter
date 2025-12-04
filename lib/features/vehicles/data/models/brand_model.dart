@@ -46,3 +46,4 @@ class BrandModel extends Equatable {
 }
 
 
+
