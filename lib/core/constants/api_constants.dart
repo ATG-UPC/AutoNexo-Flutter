@@ -70,10 +70,26 @@ class ApiConstants {
   static String get serviceRequestsFullUrl => '$_serviceRequestsBaseUrl/service-requests';
   static String serviceRequestByIdFullUrl(int id) => '$_serviceRequestsBaseUrl/service-requests/$id';
 
-  // Endpoints de Ofertas
+  // Endpoints de Ofertas (sin prefijo v1)
+  // NOTA: Estos endpoints usan /api en lugar de /api/v1
+  static String get _offersBaseUrl {
+    if (_isProduction) {
+      return 'https://autonexo-backend-akcsb5avacemdwh7.canadacentral-01.azurewebsites.net/api';
+    }
+    return 'http://localhost:8080/api';
+  }
+  
+  /// Obtiene todas las ofertas del usuario autenticado
+  static String get myOffersFullUrl => '$_offersBaseUrl/offers/my-requests';
+  
+  /// Obtiene las ofertas para una solicitud específica (legacy, mantener por compatibilidad)
   static String offersForRequest(int requestId) => '/offers/for-request/$requestId';
-  static String acceptOffer(int offerId) => '/offers/$offerId/accept';
-  static String rejectOffer(int offerId) => '/offers/$offerId/reject';
+  
+  /// Acepta una oferta
+  static String acceptOfferFullUrl(int offerId) => '$_offersBaseUrl/offers/$offerId/accept';
+  
+  /// Rechaza una oferta
+  static String rejectOfferFullUrl(int offerId) => '$_offersBaseUrl/offers/$offerId/reject';
 
   // Endpoints de Workshops (públicos)
   static const String workshopSearchEndpoint = '/workshops/search';

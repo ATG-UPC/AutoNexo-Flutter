@@ -1,4 +1,3 @@
-import 'package:intl/intl.dart';
 
 /// Formateadores de datos para la aplicación.
 /// 
@@ -27,8 +26,12 @@ class Formatters {
       _ => currency,
     };
     
-    final formatter = NumberFormat('#,##0.00', 'es_PE');
-    return '$symbol ${formatter.format(amount)}';
+    // Formatear sin locale para evitar errores de inicialización
+    final formattedAmount = amount.toStringAsFixed(2).replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
+    return '$symbol $formattedAmount';
   }
 
   /// Formatea un monto con símbolo corto
@@ -149,8 +152,12 @@ class Formatters {
   
   /// Formatea el kilometraje
   static String formatMileage(int mileage) {
-    final formatter = NumberFormat('#,###', 'es_PE');
-    return '${formatter.format(mileage)} km';
+    // Formatear sin locale para evitar errores de inicialización
+    final formattedMileage = mileage.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
+    return '$formattedMileage km';
   }
 
   /// Formatea el kilometraje de forma corta
@@ -194,8 +201,11 @@ class Formatters {
   
   /// Formatea un número con separadores de miles
   static String formatNumber(num number) {
-    final formatter = NumberFormat('#,###', 'es_PE');
-    return formatter.format(number);
+    // Formatear sin locale para evitar errores de inicialización
+    return number.toString().replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (Match m) => '${m[1]},',
+    );
   }
 
   /// Formatea un decimal con precisión

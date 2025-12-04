@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'core/services/preferences_service.dart';
 import 'core/ui/theme/app_theme.dart';
 import 'core/navigation/app_router.dart';
@@ -7,7 +8,19 @@ import 'core/di/injection_container.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // Inicializar locale para formateo de fechas en español
+  try {
+    await initializeDateFormatting('es', null);
+  } catch (e) {
+    // Si falla la inicialización, intentar sin especificar locale
+    try {
+      await initializeDateFormatting();
+    } catch (e2) {
+      debugPrint('Error inicializando locale: $e2');
+    }
+  }
+
   // Inicializar dependencias
   final di = InjectionContainer();
   di.init();

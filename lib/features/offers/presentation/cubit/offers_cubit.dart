@@ -8,37 +8,64 @@ class OffersCubit extends Cubit<OffersState> {
   final OffersRepository _repository;
 
   OffersCubit({OffersRepository? repository})
-      : _repository = repository ?? OffersRepository(),
-        super(OffersState.initial());
+    : _repository = repository ?? OffersRepository(),
+      super(OffersState.initial());
 
-  /// Carga las ofertas para una solicitud de servicio
+  /// Carga todas las ofertas del usuario
+  Future<void> loadMyOffers({String? status}) async {
+    if (isClosed) return;
+
+    emit(state.copyWith(status: OffersStatus.loading, clearError: true));
+
+    try {
+      final offers = await _repository.getMyOffers(status: status);
+
+      if (isClosed) return;
+
+      emit(state.copyWith(status: OffersStatus.loaded, offers: offers));
+
+      // Cargar info de talleres en background
+      _loadWorkshopsInfo(offers);
+    } catch (e) {
+      if (isClosed) return;
+      emit(
+        state.copyWith(
+          status: OffersStatus.error,
+          errorMessage: _parseError(e),
+        ),
+      );
+    }
+  }
+
+  /// Carga las ofertas para una solicitud de servicio específica
   Future<void> loadOffersForRequest(int requestId) async {
     if (isClosed) return;
 
-    emit(state.copyWith(
-      status: OffersStatus.loading,
-      serviceRequestId: requestId,
-      clearError: true,
-    ));
+    emit(
+      state.copyWith(
+        status: OffersStatus.loading,
+        serviceRequestId: requestId,
+        clearError: true,
+      ),
+    );
 
     try {
       final offers = await _repository.getOffersForRequest(requestId);
 
       if (isClosed) return;
 
-      emit(state.copyWith(
-        status: OffersStatus.loaded,
-        offers: offers,
-      ));
+      emit(state.copyWith(status: OffersStatus.loaded, offers: offers));
 
       // Cargar info de talleres en background
       _loadWorkshopsInfo(offers);
     } catch (e) {
       if (isClosed) return;
-      emit(state.copyWith(
-        status: OffersStatus.error,
-        errorMessage: _parseError(e),
-      ));
+      emit(
+        state.copyWith(
+          status: OffersStatus.error,
+          errorMessage: _parseError(e),
+        ),
+      );
     }
   }
 
@@ -51,10 +78,14 @@ class OffersCubit extends Cubit<OffersState> {
       if (state.workshopsCache.containsKey(workshopId)) continue;
 
       try {
-        final workshopInfo = await _repository.getWorkshopPublicInfo(workshopId);
+        final workshopInfo = await _repository.getWorkshopPublicInfo(
+          workshopId,
+        );
         if (isClosed) return;
 
-        final updatedCache = Map<int, WorkshopPublicModel>.from(state.workshopsCache);
+        final updatedCache = Map<int, WorkshopPublicModel>.from(
+          state.workshopsCache,
+        );
         updatedCache[workshopId] = workshopInfo;
 
         emit(state.copyWith(workshopsCache: updatedCache));
@@ -101,10 +132,7 @@ class OffersCubit extends Cubit<OffersState> {
   Future<bool> acceptOffer(int offerId) async {
     if (isClosed) return false;
 
-    emit(state.copyWith(
-      status: OffersStatus.accepting,
-      clearError: true,
-    ));
+    emit(state.copyWith(status: OffersStatus.accepting, clearError: true));
 
     try {
       await _repository.acceptOffer(offerId);
@@ -132,19 +160,30 @@ class OffersCubit extends Cubit<OffersState> {
         return offer;
       }).toList();
 
-      emit(state.copyWith(
-        status: OffersStatus.accepted,
-        offers: updatedOffers,
-        successMessage: '¡Oferta aceptada! Se ha creado tu reserva.',
-      ));
+      emit(
+        state.copyWith(
+          status: OffersStatus.accepted,
+          offers: updatedOffers,
+          successMessage: '¡Oferta aceptada! Se ha creado tu reserva.',
+        ),
+      );
+
+      // Recargar ofertas desde el servidor para obtener el estado actualizado
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (!isClosed) {
+          loadMyOffers();
+        }
+      });
 
       return true;
     } catch (e) {
       if (isClosed) return false;
-      emit(state.copyWith(
-        status: OffersStatus.error,
-        errorMessage: _parseError(e),
-      ));
+      emit(
+        state.copyWith(
+          status: OffersStatus.error,
+          errorMessage: _parseError(e),
+        ),
+      );
       return false;
     }
   }
@@ -153,10 +192,7 @@ class OffersCubit extends Cubit<OffersState> {
   Future<bool> rejectOffer(int offerId) async {
     if (isClosed) return false;
 
-    emit(state.copyWith(
-      status: OffersStatus.rejecting,
-      clearError: true,
-    ));
+    emit(state.copyWith(status: OffersStatus.rejecting, clearError: true));
 
     try {
       await _repository.rejectOffer(offerId);
@@ -184,20 +220,31 @@ class OffersCubit extends Cubit<OffersState> {
         return offer;
       }).toList();
 
-      emit(state.copyWith(
-        status: OffersStatus.rejected,
-        offers: updatedOffers,
-        successMessage: 'Oferta rechazada',
-        clearSelectedOffer: true,
-      ));
+      emit(
+        state.copyWith(
+          status: OffersStatus.rejected,
+          offers: updatedOffers,
+          successMessage: 'Oferta rechazada',
+          clearSelectedOffer: true,
+        ),
+      );
+
+      // Recargar ofertas desde el servidor para obtener el estado actualizado
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (!isClosed) {
+          loadMyOffers();
+        }
+      });
 
       return true;
     } catch (e) {
       if (isClosed) return false;
-      emit(state.copyWith(
-        status: OffersStatus.error,
-        errorMessage: _parseError(e),
-      ));
+      emit(
+        state.copyWith(
+          status: OffersStatus.error,
+          errorMessage: _parseError(e),
+        ),
+      );
       return false;
     }
   }
@@ -206,6 +253,8 @@ class OffersCubit extends Cubit<OffersState> {
   Future<void> refreshOffers() async {
     if (state.serviceRequestId != null) {
       await loadOffersForRequest(state.serviceRequestId!);
+    } else {
+      await loadMyOffers();
     }
   }
 
@@ -224,4 +273,3 @@ class OffersCubit extends Cubit<OffersState> {
     return errorStr;
   }
 }
-

@@ -4,6 +4,7 @@ import '../../../../core/enums/status.dart';
 import '../../../../core/navigation/app_router.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../../../auth/presentation/bloc/auth_state.dart';
+import '../../../offers/presentation/cubit/cubit.dart';
 import '../../../vehicles/presentation/cubit/cubit.dart';
 import '../cubit/cubit.dart';
 import '../widgets/widgets.dart';
@@ -265,14 +266,8 @@ class _HomeContentState extends State<HomeContent> {
                 ),
               ),
 
-              // Notificaciones
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                color: Colors.white,
-                onPressed: () {
-                  AppRouter.toNotifications(context);
-                },
-              ),
+              // Notificaciones con badge
+              NotificationBell(),
 
               // Menu hamburguesa - usa Builder para el contexto correcto
               Builder(

@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../../service_requests/data/models/models.dart';
-import '../../../service_requests/presentation/cubit/cubit.dart';
 import '../cubit/cubit.dart';
-import 'offers_list_page.dart';
+import '../widgets/widgets.dart';
+import 'offer_detail_page.dart';
 
 /// Página principal de ofertas para el BottomNavBar
-/// Muestra las solicitudes de servicio que tienen ofertas disponibles
+/// Muestra todas las ofertas recibidas del usuario
 class MyOffersPage extends StatefulWidget {
   const MyOffersPage({super.key});
 
@@ -17,14 +15,15 @@ class MyOffersPage extends StatefulWidget {
 
 class _MyOffersPageState extends State<MyOffersPage> {
   bool _initialized = false;
+  int? _processingOfferId;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (!_initialized) {
       _initialized = true;
-      // Cargar las solicitudes de servicio
-      context.read<ServiceRequestsCubit>().loadServiceRequests();
+      // Cargar todas las ofertas del usuario
+      context.read<OffersCubit>().loadMyOffers();
     }
   }
 
@@ -33,7 +32,7 @@ class _MyOffersPageState extends State<MyOffersPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SafeArea(
-        child: BlocConsumer<ServiceRequestsCubit, ServiceRequestsState>(
+        child: BlocConsumer<OffersCubit, OffersState>(
           listener: (context, state) {
             if (state.errorMessage != null) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -42,49 +41,97 @@ class _MyOffersPageState extends State<MyOffersPage> {
                   backgroundColor: Colors.red.shade700,
                 ),
               );
-              context.read<ServiceRequestsCubit>().clearMessages();
+              context.read<OffersCubit>().clearMessages();
+              // Limpiar estado de procesamiento en caso de error
+              if (_processingOfferId != null) {
+                setState(() {
+                  _processingOfferId = null;
+                });
+              }
+            }
+
+            if (state.successMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.successMessage!),
+                  backgroundColor: Colors.green.shade700,
+                ),
+              );
+              context.read<OffersCubit>().clearMessages();
+            }
+
+            // Si se aceptó o rechazó una oferta, recargar la lista
+            if (state.status == OffersStatus.accepted ||
+                state.status == OffersStatus.rejected) {
+              // Limpiar estado de procesamiento
+              if (_processingOfferId != null) {
+                setState(() {
+                  _processingOfferId = null;
+                });
+              }
+              // Recargar ofertas después de un breve delay
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (mounted) {
+                  context.read<OffersCubit>().loadMyOffers();
+                }
+              });
             }
           },
           builder: (context, state) {
             return RefreshIndicator(
-              onRefresh: () => context.read<ServiceRequestsCubit>().loadServiceRequests(),
+              onRefresh: () => context.read<OffersCubit>().refreshOffers(),
               child: CustomScrollView(
                 slivers: [
                   // Header
-                  SliverToBoxAdapter(
-                    child: _buildHeader(context),
-                  ),
+                  SliverToBoxAdapter(child: _buildHeader(context, state)),
 
                   // Contenido
                   if (state.isLoading)
                     const SliverFillRemaining(
                       child: Center(child: CircularProgressIndicator()),
                     )
-                  else if (_getRequestsWithOffers(state).isEmpty)
-                    SliverFillRemaining(
-                      child: _buildEmptyState(context),
-                    )
+                  else if (!state.hasOffers)
+                    SliverFillRemaining(child: _buildEmptyState(context))
                   else
                     SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final request = _getRequestsWithOffers(state)[index];
-                            return _ServiceRequestWithOffersCard(
-                              request: request,
-                              onTap: () => _navigateToOffers(context, request),
-                            );
-                          },
-                          childCount: _getRequestsWithOffers(state).length,
-                        ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final offer = state.offers[index];
+                          final workshop = state.getWorkshopInfo(
+                            offer.workshopId,
+                          );
+                          final isProcessing = _processingOfferId == offer.id;
+                          // Capturar el cubit en el builder donde sí tiene acceso
+                          final offersCubit = context.read<OffersCubit>();
+
+                          return OfferCard(
+                            offer: offer,
+                            workshop: workshop,
+                            onTap: () =>
+                                _navigateToDetail(context, offer, offersCubit),
+                            onAccept: offer.canRespond
+                                ? (offerId) => _handleAccept(
+                                    context,
+                                    offerId,
+                                    offersCubit,
+                                  )
+                                : null,
+                            onReject: offer.canRespond
+                                ? (offerId) => _handleReject(
+                                    context,
+                                    offerId,
+                                    offersCubit,
+                                  )
+                                : null,
+                            isProcessing: isProcessing,
+                          );
+                        }, childCount: state.offers.length),
                       ),
                     ),
 
                   // Espacio al final
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 100),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 100)),
                 ],
               ),
             );
@@ -94,15 +141,9 @@ class _MyOffersPageState extends State<MyOffersPage> {
     );
   }
 
-  /// Obtiene las solicitudes que pueden tener ofertas (PENDING o MATCHED)
-  List<ServiceRequestModel> _getRequestsWithOffers(ServiceRequestsState state) {
-    return state.serviceRequests.where((r) {
-      return r.status == ServiceRequestStatus.pending ||
-          r.status == ServiceRequestStatus.matched;
-    }).toList();
-  }
+  Widget _buildHeader(BuildContext context, OffersState state) {
+    final pendingCount = state.pendingOffersCount;
 
-  Widget _buildHeader(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -126,7 +167,12 @@ class _MyOffersPageState extends State<MyOffersPage> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Revisa las ofertas de los talleres para tus solicitudes',
+            state.hasOffers
+                ? '${state.offers.length} oferta${state.offers.length == 1 ? '' : 's'} recibida${state.offers.length == 1 ? '' : 's'}' +
+                      (pendingCount > 0
+                          ? ' • $pendingCount pendiente${pendingCount == 1 ? '' : 's'}'
+                          : '')
+                : 'Revisa las ofertas de los talleres para tus solicitudes',
             style: TextStyle(
               fontSize: 15,
               color: Colors.white.withOpacity(0.85),
@@ -178,11 +224,10 @@ class _MyOffersPageState extends State<MyOffersPage> {
             const SizedBox(height: 24),
             OutlinedButton.icon(
               onPressed: () {
-                // Navegar a crear solicitud (índice 2 del BottomNavBar)
-                // Esto se maneja en MainPage
+                context.read<OffersCubit>().loadMyOffers();
               },
-              icon: const Icon(Icons.add),
-              label: const Text('Crear Solicitud'),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Actualizar'),
             ),
           ],
         ),
@@ -190,189 +235,99 @@ class _MyOffersPageState extends State<MyOffersPage> {
     );
   }
 
-  void _navigateToOffers(BuildContext context, ServiceRequestModel request) {
+  Future<bool> _handleAccept(
+    BuildContext context,
+    int offerId,
+    OffersCubit offersCubit,
+  ) async {
+    if (_processingOfferId != null)
+      return false; // Ya hay una operación en curso
+
+    setState(() {
+      _processingOfferId = offerId;
+    });
+
+    try {
+      final success = await offersCubit.acceptOffer(offerId);
+
+      if (mounted) {
+        if (success) {
+          // Recargar ofertas después de aceptar
+          await offersCubit.loadMyOffers();
+        }
+        setState(() {
+          _processingOfferId = null;
+        });
+        return success;
+      }
+      return false;
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _processingOfferId = null;
+        });
+      }
+      return false;
+    }
+  }
+
+  Future<bool> _handleReject(
+    BuildContext context,
+    int offerId,
+    OffersCubit offersCubit,
+  ) async {
+    if (_processingOfferId != null)
+      return false; // Ya hay una operación en curso
+
+    setState(() {
+      _processingOfferId = offerId;
+    });
+
+    try {
+      final success = await offersCubit.rejectOffer(offerId);
+
+      if (mounted) {
+        if (success) {
+          // Recargar ofertas después de rechazar
+          await offersCubit.loadMyOffers();
+        }
+        setState(() {
+          _processingOfferId = null;
+        });
+        return success;
+      }
+      return false;
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _processingOfferId = null;
+        });
+      }
+      return false;
+    }
+  }
+
+  void _navigateToDetail(BuildContext context, offer, OffersCubit offersCubit) {
+    if (!mounted) return;
+
+    offersCubit.selectOffer(offer);
+
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => BlocProvider(
-          create: (_) => OffersCubit(),
-          child: OffersListPage(serviceRequestId: request.id),
+        builder: (newContext) => BlocProvider.value(
+          value: offersCubit,
+          child: const OfferDetailPage(),
         ),
       ),
-    );
+    ).then((shouldReload) {
+      // Limpiar selección al volver y recargar ofertas si hubo cambios
+      if (mounted) {
+        offersCubit.clearSelectedOffer();
+        if (shouldReload == true) {
+          offersCubit.loadMyOffers();
+        }
+      }
+    });
   }
 }
-
-/// Card para mostrar una solicitud de servicio con ofertas
-class _ServiceRequestWithOffersCard extends StatelessWidget {
-  final ServiceRequestModel request;
-  final VoidCallback onTap;
-
-  const _ServiceRequestWithOffersCard({
-    required this.request,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final hasOffers = request.status == ServiceRequestStatus.matched;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      elevation: 2,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header con estado
-              Row(
-                children: [
-                  _buildStatusBadge(hasOffers),
-                  const Spacer(),
-                  Text(
-                    request.formattedDate,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-
-              // Título
-              Text(
-                'Solicitud #${request.id}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-
-              // Servicios
-              Row(
-                children: [
-                  Icon(
-                    Icons.build_outlined,
-                    size: 16,
-                    color: Colors.grey.shade500,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      '${request.servicesCount} servicio(s) solicitado(s)',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // Descripción
-              if (request.description != null && request.description!.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.notes_outlined,
-                      size: 16,
-                      color: Colors.grey.shade500,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        request.description!,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-
-              const SizedBox(height: 16),
-
-              // Botón para ver ofertas
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: onTap,
-                  icon: Icon(
-                    hasOffers ? Icons.local_offer : Icons.hourglass_empty,
-                    size: 18,
-                  ),
-                  label: Text(
-                    hasOffers ? 'Ver Ofertas Recibidas' : 'Esperando Ofertas...',
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: hasOffers 
-                        ? theme.primaryColor 
-                        : Colors.grey.shade400,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusBadge(bool hasOffers) {
-    final backgroundColor = hasOffers 
-        ? Colors.green.shade50 
-        : Colors.orange.shade50;
-    final textColor = hasOffers 
-        ? Colors.green.shade700 
-        : Colors.orange.shade700;
-    final icon = hasOffers 
-        ? Icons.check_circle_outline 
-        : Icons.hourglass_empty;
-    final text = hasOffers ? 'Con ofertas' : 'Pendiente';
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: textColor),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-

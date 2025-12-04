@@ -41,6 +41,7 @@ class ServiceRequestsCubit extends Cubit<ServiceRequestsState> {
   }
 
   /// Carga las solicitudes del usuario
+  /// Nota: Siempre carga todas las solicitudes, el filtrado se hace del lado del cliente
   Future<void> loadServiceRequests({String? status}) async {
     if (_isLoading) return;
     _isLoading = true;
@@ -49,12 +50,13 @@ class ServiceRequestsCubit extends Cubit<ServiceRequestsState> {
       if (!isClosed) {
         emit(state.copyWith(
           status: ServiceRequestsStatus.loading,
-          statusFilter: status,
           clearError: true,
         ));
       }
 
-      final requests = await _repository.getMyServiceRequests(status: status);
+      // Siempre cargar todas las solicitudes sin filtro del backend
+      // El filtrado se hace del lado del cliente en filteredRequests
+      final requests = await _repository.getMyServiceRequests();
 
       if (isClosed) return;
 
@@ -226,7 +228,8 @@ class ServiceRequestsCubit extends Cubit<ServiceRequestsState> {
   /// Cambia el filtro de estado
   void setStatusFilter(String? status) {
     emit(state.copyWith(statusFilter: status));
-    loadServiceRequests(status: status);
+    // No recargar desde el backend, solo actualizar el filtro
+    // El filtrado se hace del lado del cliente en filteredRequests
   }
 
   /// Limpia la solicitud seleccionada

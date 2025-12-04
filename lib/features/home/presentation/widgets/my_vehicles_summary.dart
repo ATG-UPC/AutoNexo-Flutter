@@ -41,41 +41,53 @@ class MyVehiclesSummary extends StatelessWidget {
             children: [
               // Header
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: AppTheme.secondarySteelBlue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.secondarySteelBlue.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.directions_car,
+                            color: AppTheme.secondarySteelBlue,
+                            size: 20,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.directions_car,
-                          color: AppTheme.secondarySteelBlue,
-                          size: 20,
+                        const SizedBox(width: 8),
+                        const Flexible(
+                          child: Text(
+                            'Mis Vehículos',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.textPrimary,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        'Mis Vehículos',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.textPrimary,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   if (state.hasVehicles && onViewAll != null)
                     TextButton(
                       onPressed: onViewAll,
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                       child: const Text(
                         'Ver todos',
                         style: TextStyle(
                           color: AppTheme.secondarySteelBlue,
                           fontWeight: FontWeight.w500,
+                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -173,8 +185,8 @@ class MyVehiclesSummary extends StatelessWidget {
       children: [
         // Imagen del vehículo
         Container(
-          width: 80,
-          height: 60,
+          width: 70,
+          height: 55,
           decoration: BoxDecoration(
             color: AppTheme.gray1.withOpacity(0.5),
             borderRadius: BorderRadius.circular(10),
@@ -191,7 +203,7 @@ class MyVehiclesSummary extends StatelessWidget {
               : _buildCarIcon(),
         ),
 
-        const SizedBox(width: 16),
+        const SizedBox(width: 12),
 
         // Información del vehículo
         Expanded(
@@ -211,30 +223,38 @@ class MyVehiclesSummary extends StatelessWidget {
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryBlue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      vehicle.licensePlate,
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primaryBlue,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryBlue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        vehicle.licensePlate,
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryBlue,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Año ${vehicle.year}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.textSecondary,
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      'Año ${vehicle.year}',
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
                     ),
                   ),
                 ],
@@ -258,9 +278,15 @@ class MyVehiclesSummary extends StatelessWidget {
         if (onViewAll != null)
           IconButton(
             onPressed: onViewAll,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(
+              minWidth: 32,
+              minHeight: 32,
+            ),
             icon: const Icon(
               Icons.chevron_right,
               color: AppTheme.secondarySteelBlue,
+              size: 24,
             ),
           ),
       ],

@@ -103,6 +103,31 @@ class ServiceRequestRepository {
             .toList();
       } else if (response.statusCode == 204) {
         return [];
+      } else if (response.statusCode == 400) {
+        // El backend no acepta el filtro de status
+        // Si hay un filtro, intentar cargar todas las solicitudes sin filtro
+        if (status != null) {
+          // Retry sin el parámetro de status
+          final retryResponse = await http.get(
+            Uri.parse(ApiConstants.serviceRequestsFullUrl),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer $token',
+            },
+          ).timeout(ApiConstants.connectionTimeout);
+          
+          if (retryResponse.statusCode == 200) {
+            final List<dynamic> requestsList = json.decode(retryResponse.body) as List<dynamic>;
+            return requestsList
+                .map((json) => ServiceRequestModel.fromJson(json as Map<String, dynamic>))
+                .toList();
+          } else if (retryResponse.statusCode == 204) {
+            return [];
+          }
+        }
+        // Si no hay filtro o el retry falló, retornar lista vacía
+        // El filtrado se hará del lado del cliente
+        return [];
       } else if (response.statusCode == 401) {
         throw Exception('Sesión expirada. Por favor inicie sesión nuevamente');
       } else {
