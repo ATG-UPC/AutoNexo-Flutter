@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/navigation/app_router.dart';
+import '../../../../core/ui/widgets/maps/maps.dart';
 import '../../data/models/models.dart';
 import '../cubit/cubit.dart';
 
@@ -425,6 +426,17 @@ class OfferDetailPage extends StatelessWidget {
                     workshop.address,
                   ),
                   const SizedBox(height: 12),
+                  // Mapa
+                  if (workshop.location != null) ...[
+                    MapWidget(
+                      latitude: workshop.location!.latitude,
+                      longitude: workshop.location!.longitude,
+                      height: 200,
+                      markerTitle: workshop.name,
+                      markerSnippet: workshop.address,
+                    ),
+                    const SizedBox(height: 12),
+                  ],
                 ],
 
                 // Teléfono

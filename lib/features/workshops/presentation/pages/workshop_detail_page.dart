@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../core/ui/widgets/maps/maps.dart';
 import '../../../../core/ui/widgets/widgets.dart';
 import '../../data/models/models.dart';
 import '../cubit/cubit.dart';
@@ -109,7 +110,27 @@ class WorkshopDetailPage extends StatelessWidget {
                   _buildSection(
                     context,
                     title: 'Ubicaciones',
-                    child: _buildLocationsSection(context, workshop),
+                    child: Column(
+                      children: [
+                        // Mapa con la ubicación principal
+                        if (workshop.primaryLocation != null) ...[
+                          MapWidget(
+                            latitude: workshop.primaryLocation!.latitude,
+                            longitude: workshop.primaryLocation!.longitude,
+                            height: 200,
+                            markerTitle: workshop.name,
+                            markerSnippet: workshop.primaryLocation!.formattedAddress,
+                            onTap: () => _openMaps(
+                              workshop.primaryLocation!.latitude,
+                              workshop.primaryLocation!.longitude,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        // Lista de ubicaciones
+                        _buildLocationsSection(context, workshop),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 20),
                 ],
@@ -142,10 +163,26 @@ class WorkshopDetailPage extends StatelessWidget {
   }
 
   Widget _buildSliverAppBar(BuildContext context, WorkshopProfileModel workshop) {
-    return SliverAppBar(
-      expandedHeight: 200,
-      pinned: true,
-      flexibleSpace: FlexibleSpaceBar(
+    return BlocBuilder<WorkshopsCubit, WorkshopsState>(
+      builder: (context, state) {
+        final isFavorite = state.isFavorite(workshop.id);
+        
+        return SliverAppBar(
+          expandedHeight: 200,
+          pinned: true,
+          actions: [
+            IconButton(
+              icon: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.red : Colors.white,
+              ),
+              onPressed: () {
+                context.read<WorkshopsCubit>().toggleFavorite(workshop.id);
+              },
+              tooltip: isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos',
+            ),
+          ],
+          flexibleSpace: FlexibleSpaceBar(
         background: workshop.hasPhotos
             ? Image.network(
                 workshop.photoUrls.first,
@@ -183,8 +220,10 @@ class WorkshopDetailPage extends StatelessWidget {
                           color: Colors.white,
                         ),
                 ),
-              ),
-      ),
+                ),
+          ),
+        );
+      },
     );
   }
 
@@ -522,6 +561,7 @@ class WorkshopDetailPage extends StatelessWidget {
     }
   }
 }
+
 
 
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../core/enums/status.dart';
 import '../../../../core/ui/widgets/widgets.dart';
@@ -19,6 +20,7 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
   String _sortBy = 'distance'; // 'distance' o 'rating'
   double? _selectedMinRating;
   int _selectedRadius = 50;
+  bool _showMapView = false; // true = mapa, false = lista
 
   @override
   void initState() {
@@ -41,6 +43,15 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
               context.read<WorkshopsCubit>().searchWithCurrentLocation();
             },
             tooltip: 'Usar mi ubicación',
+          ),
+          IconButton(
+            icon: Icon(_showMapView ? Icons.list : Icons.map),
+            onPressed: () {
+              setState(() {
+                _showMapView = !_showMapView;
+              });
+            },
+            tooltip: _showMapView ? 'Ver lista' : 'Ver mapa',
           ),
           IconButton(
             icon: const Icon(Icons.filter_list),
@@ -87,6 +98,10 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
                 final sortedResults = _sortBy == 'rating'
                     ? state.resultsByRating
                     : state.resultsByDistance;
+
+                if (_showMapView) {
+                  return _buildMapView(context, sortedResults, state);
+                }
 
                 return RefreshIndicator(
                   onRefresh: () => context.read<WorkshopsCubit>().refresh(),
@@ -464,5 +479,105 @@ class _WorkshopSearchPageState extends State<WorkshopSearchPage> {
         ),
       ),
     );
+  }
+
+  Widget _buildMapView(
+    BuildContext context,
+    List<dynamic> workshops,
+    WorkshopsState state,
+  ) {
+    if (state.searchParams.latitude == null || state.searchParams.longitude == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.map_outlined, size: 64, color: Colors.grey.shade400),
+            const SizedBox(height: 16),
+            Text(
+              'No hay ubicación disponible',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Activa la ubicación para ver el mapa',
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                context.read<WorkshopsCubit>().searchWithCurrentLocation();
+              },
+              icon: const Icon(Icons.my_location),
+              label: const Text('Obtener mi ubicación'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Centrar el mapa en la ubicación del usuario
+    final centerLat = state.searchParams.latitude!;
+    final centerLng = state.searchParams.longitude!;
+
+    return Stack(
+      children: [
+        GoogleMap(
+          initialCameraPosition: CameraPosition(
+            target: LatLng(centerLat, centerLng),
+            zoom: state.searchParams.radiusKm != null 
+                ? _getZoomFromRadius(state.searchParams.radiusKm!)
+                : 13.0,
+          ),
+          markers: const {}, // Los workshops no tienen coordenadas en el modelo de búsqueda
+          mapType: MapType.normal,
+          myLocationButtonEnabled: true,
+          zoomControlsEnabled: true,
+          myLocationEnabled: true,
+        ),
+        // Banner informativo
+        if (workshops.isNotEmpty)
+          Positioned(
+            top: 16,
+            left: 16,
+            right: 16,
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 20, color: Colors.blue.shade700),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${workshops.length} taller${workshops.length == 1 ? '' : 'es'} encontrado${workshops.length == 1 ? '' : 's'} en el área',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          _showMapView = false;
+                        });
+                      },
+                      child: const Text('Ver lista'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  double _getZoomFromRadius(int radiusKm) {
+    // Ajustar zoom según el radio de búsqueda
+    if (radiusKm <= 10) return 14.0;
+    if (radiusKm <= 25) return 12.0;
+    if (radiusKm <= 50) return 11.0;
+    return 10.0;
   }
 }

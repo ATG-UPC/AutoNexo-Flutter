@@ -68,7 +68,7 @@ class MaintenancesRepository {
           .join('&');
 
       final response = await _apiClient.get(
-        '/maintenances/vehicle/$vehicleId?$queryString',
+        '/vehicles/$vehicleId/maintenances?$queryString',
       );
 
       if (response == null) {

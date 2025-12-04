@@ -12,6 +12,7 @@ class WorkshopsState extends Equatable {
   final WorkshopSearchParams searchParams;
   final String? errorMessage;
   final bool isLoadingProfile;
+  final Set<int> favoriteWorkshopIds;
 
   const WorkshopsState({
     this.status = Status.initial,
@@ -20,6 +21,7 @@ class WorkshopsState extends Equatable {
     this.searchParams = const WorkshopSearchParams(),
     this.errorMessage,
     this.isLoadingProfile = false,
+    this.favoriteWorkshopIds = const {},
   });
 
   /// ¿Hay resultados?
@@ -30,6 +32,9 @@ class WorkshopsState extends Equatable {
 
   /// Número de resultados
   int get resultCount => searchResults.length;
+
+  /// Verifica si un workshop es favorito
+  bool isFavorite(int workshopId) => favoriteWorkshopIds.contains(workshopId);
 
   /// Resultados ordenados por distancia
   List<WorkshopSearchResultModel> get resultsByDistance {
@@ -62,6 +67,7 @@ class WorkshopsState extends Equatable {
     WorkshopSearchParams? searchParams,
     String? errorMessage,
     bool? isLoadingProfile,
+    Set<int>? favoriteWorkshopIds,
     bool clearSelectedWorkshop = false,
     bool clearError = false,
   }) {
@@ -72,6 +78,7 @@ class WorkshopsState extends Equatable {
       searchParams: searchParams ?? this.searchParams,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       isLoadingProfile: isLoadingProfile ?? this.isLoadingProfile,
+      favoriteWorkshopIds: favoriteWorkshopIds ?? this.favoriteWorkshopIds,
     );
   }
 
@@ -83,8 +90,10 @@ class WorkshopsState extends Equatable {
         searchParams,
         errorMessage,
         isLoadingProfile,
+        favoriteWorkshopIds,
       ];
 }
+
 
 
 

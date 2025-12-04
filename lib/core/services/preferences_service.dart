@@ -29,6 +29,7 @@ class PreferencesService {
   static const String _languageKey = 'language';
   static const String _notificationsEnabledKey = 'notifications_enabled';
   static const String _lastSyncKey = 'last_sync';
+  static const String _favoriteWorkshopsKey = 'favorite_workshops';
 
   // === Onboarding ===
   
@@ -170,6 +171,60 @@ class PreferencesService {
   Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+  }
+
+  // === Favorites (Workshops) ===
+
+  /// Obtiene la lista de IDs de workshops favoritos
+  Future<List<int>> getFavoriteWorkshops() async {
+    final prefs = await SharedPreferences.getInstance();
+    final stringList = prefs.getStringList(_favoriteWorkshopsKey);
+    if (stringList == null) {
+      return [];
+    }
+    return stringList.map((id) => int.tryParse(id) ?? 0).where((id) => id > 0).toList();
+  }
+
+  /// Agrega un workshop a favoritos
+  Future<void> addFavoriteWorkshop(int workshopId) async {
+    if (workshopId <= 0) return;
+    final prefs = await SharedPreferences.getInstance();
+    final favorites = await getFavoriteWorkshops();
+    if (!favorites.contains(workshopId)) {
+      favorites.add(workshopId);
+      final stringList = favorites.map((id) => id.toString()).toList();
+      await prefs.setStringList(_favoriteWorkshopsKey, stringList);
+    }
+  }
+
+  /// Remueve un workshop de favoritos
+  Future<void> removeFavoriteWorkshop(int workshopId) async {
+    if (workshopId <= 0) return;
+    final prefs = await SharedPreferences.getInstance();
+    final favorites = await getFavoriteWorkshops();
+    favorites.remove(workshopId);
+    final stringList = favorites.map((id) => id.toString()).toList();
+    await prefs.setStringList(_favoriteWorkshopsKey, stringList);
+  }
+
+  /// Verifica si un workshop es favorito
+  Future<bool> isFavoriteWorkshop(int workshopId) async {
+    if (workshopId <= 0) return false;
+    final favorites = await getFavoriteWorkshops();
+    return favorites.contains(workshopId);
+  }
+
+  /// Alterna el estado de favorito de un workshop
+  Future<bool> toggleFavoriteWorkshop(int workshopId) async {
+    if (workshopId <= 0) return false;
+    final isFavorite = await isFavoriteWorkshop(workshopId);
+    if (isFavorite) {
+      await removeFavoriteWorkshop(workshopId);
+      return false;
+    } else {
+      await addFavoriteWorkshop(workshopId);
+      return true;
+    }
   }
 }
 

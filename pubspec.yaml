@@ -24,6 +24,9 @@ dependencies:
   # Location
   geolocator: ^10.1.0
   
+  # Maps
+  google_maps_flutter: ^2.5.0
+  
   # URL Launcher
   url_launcher: ^6.2.0
   

@@ -2,16 +2,23 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/enums/status.dart';
+import '../../../../core/services/preferences_service.dart';
 import '../../data/repositories/workshops_repository.dart';
 import 'workshops_state.dart';
 
 /// Cubit para gestionar la búsqueda de talleres
 class WorkshopsCubit extends Cubit<WorkshopsState> {
   final WorkshopsRepository _repository;
+  final PreferencesService _preferencesService;
 
-  WorkshopsCubit({WorkshopsRepository? repository})
-      : _repository = repository ?? WorkshopsRepository(),
-        super(const WorkshopsState());
+  WorkshopsCubit({
+    WorkshopsRepository? repository,
+    PreferencesService? preferencesService,
+  })  : _repository = repository ?? WorkshopsRepository(),
+        _preferencesService = preferencesService ?? PreferencesService(),
+        super(const WorkshopsState()) {
+    _loadFavorites();
+  }
 
   /// Inicializar con ubicación actual
   Future<void> initialize() async {
@@ -184,6 +191,49 @@ class WorkshopsCubit extends Cubit<WorkshopsState> {
   /// Buscar nuevamente con ubicación actual
   Future<void> searchWithCurrentLocation() async {
     await _getCurrentLocationAndSearch();
+  }
+
+  // === Favorites ===
+
+  /// Cargar favoritos desde el almacenamiento local
+  Future<void> _loadFavorites() async {
+    try {
+      final favorites = await _preferencesService.getFavoriteWorkshops();
+      if (isClosed) return;
+      emit(state.copyWith(favoriteWorkshopIds: favorites.toSet()));
+    } catch (e) {
+      // Silently fail - favoritos no son críticos
+    }
+  }
+
+  /// Alternar el estado de favorito de un workshop
+  Future<void> toggleFavorite(int workshopId) async {
+    if (isClosed) return;
+
+    try {
+      final isFavorite = await _preferencesService.toggleFavoriteWorkshop(workshopId);
+      
+      // Actualizar estado local
+      final newFavorites = Set<int>.from(state.favoriteWorkshopIds);
+      if (isFavorite) {
+        newFavorites.add(workshopId);
+      } else {
+        newFavorites.remove(workshopId);
+      }
+      
+      if (isClosed) return;
+      emit(state.copyWith(favoriteWorkshopIds: newFavorites));
+    } catch (e) {
+      if (isClosed) return;
+      emit(state.copyWith(
+        errorMessage: 'Error al actualizar favorito: ${e.toString()}',
+      ));
+    }
+  }
+
+  /// Verificar si un workshop es favorito
+  bool isFavorite(int workshopId) {
+    return state.isFavorite(workshopId);
   }
 }
 

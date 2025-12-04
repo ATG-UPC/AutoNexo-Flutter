@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/ui/widgets/maps/maps.dart';
 import '../../data/models/models.dart';
 import '../cubit/cubit.dart';
 import '../../../offers/offers.dart';
@@ -379,6 +380,16 @@ class ServiceRequestDetailPage extends StatelessWidget {
               ),
             ),
             const Divider(),
+            const SizedBox(height: 8),
+            // Mapa
+            MapWidget(
+              latitude: request.latitude,
+              longitude: request.longitude,
+              height: 200,
+              markerTitle: 'Ubicación de la solicitud',
+              markerSnippet: 'Radio: ${request.searchRadiusKm} km',
+            ),
+            const SizedBox(height: 12),
             _buildInfoRow(
               Icons.my_location,
               'Coordenadas',

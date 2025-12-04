@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../data/models/models.dart';
+import '../cubit/cubit.dart';
 
 /// Card para mostrar un taller en la lista de resultados
 class WorkshopCard extends StatelessWidget {
@@ -36,7 +38,7 @@ class WorkshopCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Nombre y Premium badge
+                    // Nombre, Premium badge y Favorito
                     Row(
                       children: [
                         Expanded(
@@ -48,6 +50,25 @@ class WorkshopCard extends StatelessWidget {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
+                        ),
+                        // Favorito
+                        BlocBuilder<WorkshopsCubit, WorkshopsState>(
+                          builder: (context, state) {
+                            final isFavorite = state.isFavorite(workshop.id);
+                            return IconButton(
+                              icon: Icon(
+                                isFavorite ? Icons.favorite : Icons.favorite_border,
+                                size: 20,
+                                color: isFavorite ? Colors.red : Colors.grey.shade400,
+                              ),
+                              onPressed: () {
+                                context.read<WorkshopsCubit>().toggleFavorite(workshop.id);
+                              },
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              tooltip: isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos',
+                            );
+                          },
                         ),
                         if (workshop.isPremium)
                           Container(
@@ -210,6 +231,7 @@ class WorkshopCard extends StatelessWidget {
     );
   }
 }
+
 
 
 
