@@ -94,3 +94,4 @@ class WorkshopSearchResultModel extends Equatable {
 
 
 
+

@@ -84,3 +84,4 @@ class LocationModel extends Equatable {
 
 
 
+
